@@ -1,0 +1,28 @@
+[
+    {
+        "id": "12345678",
+        "overwatch": {
+            "wins": 5,
+            "loses": 2,
+            "matches": 7
+        },
+        "rocket": {
+            "wins": 2,
+            "loses": 4,
+            "matches": 6
+        }
+    },
+    {
+        "id": "98765421",
+        "overwatch": {
+            "wins": 3,
+            "loses": 4,
+            "matches": 7
+        },
+        "rocket": {
+            "wins": 8,
+            "loses": 1,
+            "matches": 9
+        }
+    }
+]

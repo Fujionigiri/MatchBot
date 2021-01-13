@@ -1,0 +1,11 @@
+
+Bug/issue log:
+1. create less json files
+2. Redo add team
+3. redo add to queue
+4. redo remove team
+5. redo everything else
+2. Delay release of matches (2pm)?
+    - Include ways to randomly assign for now
+3. Create rankings formula
+4. Store ranking data and previous match data

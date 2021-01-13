@@ -1,0 +1,44 @@
+[
+    {
+        "id": "add",
+        "command": "add {id} {name}",
+        "des": "Add game to list, id is the command - no spaces"
+    },
+
+    {
+        "id": "remove",
+        "command": "remove {id}",
+        "des": "Remove game by id from list"
+    },
+
+    {
+        "id": "des",
+        "command": "des {id}",
+        "des": "Add a description for game info, recommended for menu help"
+    },
+
+    {
+        "id": "print",
+        "command": "print {id}",
+        "des": "Prints details for entered game"
+    },
+
+    {
+        "id": "weekday",
+        "command": "weekday {id} {dayOfWeek}",
+        "des": "Set day of week by id, day of week Sun = 1 - Sat = 7"
+    },
+
+    {
+        "id": "date",
+        "command": "date {id} {MMDDYYYY}",
+        "des": "Set specific date by id, example: 01152021 = Jan 15, 2021"
+    },
+
+    {
+        "id": "time",
+        "command": "time {id} {start} {end}",
+        "des": "Set time window by id, start 0830 = 8:30 am, \n\tend 1500 = 3:00pm, enter none for start, end, or both for no time restriction"
+    }
+    
+]
