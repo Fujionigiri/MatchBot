@@ -1,10 +1,20 @@
 [
     {
-        "id":"overwatch",
-        "name":"Overwatch"
+        "id": "overwatch",
+        "name": "Overwatch",
+        "des": "Join Overwatch queue, 6 v 6, best of 3",
+        "weekday": "none",
+        "date": "none",
+        "start time": "none",
+        "end time": "none"
     },
     {
-        "id":"rocket",
-        "name":"Rocket League"
+        "id": "rocket",
+        "name": "Rocket League",
+        "des": "Join Rocket League",
+        "weekday": "3",
+        "date": "01162021",
+        "start time": "1230",
+        "end time": "2000"
     }
 ]
