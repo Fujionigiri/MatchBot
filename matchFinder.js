@@ -31,13 +31,14 @@ function gameQ(message, call, name)
     var gamePos = 0;
     for(var j = 0; j < participants.length; j++)
     {
-        if(participants[j].id == call)
+        const gameKey = Object.keys(participants[j])[0];
+        if(participants[j][gameKey] == call)
         {
             gamePos = j;
-            for(var i = 0; i < Object.keys(participants[j]).length; i++)
+            for(var i = 0; i < participants[j].length; i++)
             {
                 const key = Object.keys(participants[j])[i];
-                if(participants[gamePos][key] == message.member.user.id)
+                if(participants[j][key] == message.member)
                 {
                     message.channel.send("```diff\n- Your team is already queued.```");
                     return;
@@ -45,11 +46,9 @@ function gameQ(message, call, name)
             }
         }
     }
-    //Check if team has competed before if not add to teams json
-
-    var value = message.member;
-    participants[gamePos][value] = message.member.user.id;
-    fs.writeFile("matches.json", JSON.stringify(participants, null, 4), (err) =>
+    participants[j][message.member.user.id] = message.member;
+    //participants.push(JSON.parse("\"" + message.member.user.id + "\":\"" + message.member +"\""));
+    fs.writeFile(call + ".json", JSON.stringify(participants, null, 4), (err) =>
     {
         if (err)
         {
@@ -59,6 +58,26 @@ function gameQ(message, call, name)
         else
         {
             message.channel.send("```diff\n+ Team added (" + message.member.user.username + ").```");
+            if(participants.length >= 2)
+            {
+                let team1 = Object.keys(participants[0])[0];
+                let team2 = Object.keys(participants[1])[0];
+                message.channel.send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up match for " + name + ".");
+                participants.splice(0, 1);
+                participants.splice(0, 1);
+                fs.writeFile(call + ".json", JSON.stringify(participants, null, 4), (err) =>
+                {
+                    if (err)
+                    {
+                        message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+                        console.log(err);
+                    }
+                    else
+                    {
+                        console.log("```diff\n+ Teams removed.```");
+                    }
+                });
+            }
         }
     });
 }
@@ -100,11 +119,6 @@ function adminMenu(message)
     
     output += "\n```";
     message.channel.send(output);
-}
-
-//Send out match notifications
-function setMatches(game) {
-    
 }
 
 //Clears all queues when called to
@@ -500,10 +514,9 @@ function addToQueue(message, id, game) {
 client.on('ready', (evt) => {
     console.log("Connected");
     numGames = games.length;
-    let scheduledMessage = new cron.schedule('00 00 20 * * *', () => {
+    let scheduledMessage = new cron.schedule('00 00 18 * * *', () => {
     // This runs every day at 18:00:00 to clear all queues
-        //clearQueues();
-        //send out match notifications at 3pm
+        clearQueues();
         console.log("Queues cleared");
     });
     scheduledMessage.start()
