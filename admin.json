@@ -12,9 +12,21 @@
     },
 
     {
+        "id": "channel",
+        "command": "channel {id} {channelId}",
+        "des": "Add a channel for match distribution"
+    },
+
+    {
         "id": "des",
         "command": "des {id}",
         "des": "Add a description for game info, recommended for menu help"
+    },
+
+    {
+        "id": "max",
+        "command": "max {id} {maxTeams}",
+        "des": "Set the maximum number of teams a coach can enter to play"
     },
 
     {
@@ -36,9 +48,15 @@
     },
 
     {
+        "id": "queue",
+        "command": "queue {id} {HHMM}",
+        "des": "Set time to open match queue, teams released and matched at start time"
+    },
+
+    {
         "id": "time",
         "command": "time {id} {start} {end}",
         "des": "Set time window by id, start 0830 = 8:30 am, \n\tend 1500 = 3:00pm, enter none for start, end, or both for no time restriction"
     }
-    
+
 ]

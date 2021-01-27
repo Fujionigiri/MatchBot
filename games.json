@@ -2,19 +2,49 @@
     {
         "id": "overwatch",
         "name": "Overwatch",
+        "channel": "799624320183828531",
         "des": "Join Overwatch queue, 6 v 6, best of 3",
+        "max teams": "4",
         "weekday": "none",
         "date": "none",
-        "start time": "none",
-        "end time": "none"
+        "queue time": "0800",
+        "start time": "1230",
+        "end time": "1800"
     },
     {
         "id": "rocket",
         "name": "Rocket League",
+        "channel": "none",
         "des": "Join Rocket League",
-        "weekday": "3",
+        "max teams": "5",
+        "weekday": "1",
         "date": "01162021",
-        "start time": "1230",
+        "queue time": "0800",
+        "start time": "1130",
         "end time": "2000"
+    },
+    {
+        "id": "smash",
+        "name": "Super Smash Brothers",
+        "channel": "none",
+        "des": "add description",
+        "max teams": "10",
+        "weekday": "none",
+        "date": "none",
+        "queue time": "0800",
+        "start time": "1758",
+        "end time": "1900"
+    },
+    {
+        "id": "lol",
+        "name": "League of Legends",
+        "channel": "799624498369265666",
+        "des": "add description",
+        "max teams": "10",
+        "weekday": "none",
+        "date": "01262021",
+        "queue time": "none",
+        "start time": "1330",
+        "end time": "1900"
     }
 ]
