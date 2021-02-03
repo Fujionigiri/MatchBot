@@ -1,5 +1,15 @@
 [
     {
+        "id": "role",
+        "command": "role {coachRoleName}",
+        "des": "Set queue access role. Current role: "
+    },
+    {
+        "id": "default",
+        "command": "default {channelId}",
+        "des": "Set default channel. Current default: "
+    },
+    {
         "id": "add",
         "command": "add {id} {name}",
         "des": "Add game to list, id is the command - no spaces"
