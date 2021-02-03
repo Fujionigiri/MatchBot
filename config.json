@@ -1,3 +1,5 @@
 {
-    "BOT_TOKEN": ""
+    "BOT_TOKEN": "",
+    "COACH_ROLE": "admin",
+    "MAIN_CHANNEL": "none"
 }
