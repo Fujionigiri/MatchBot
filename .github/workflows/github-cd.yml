@@ -54,6 +54,13 @@ jobs:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
+    - name: reload PM2 process
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        command: pm2 reload ${{ secrets.REMOTE_TARGET }}/current/matchFinder.js
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
     - uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
