@@ -1,0 +1,64 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Production Deployment Workflow
+
+defaults:
+  run:
+    working-directory: my-app
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    tags:
+      - 'release-*'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+ 
+    steps:
+    - name: Get tag name
+      id: get_tag_name
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      working-directory: ../
+    - uses: actions/checkout@v1
+      with:
+        ref: ${{ steps.get_tag_name.outputs.VERSION }}
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
+    - name: Install npm dependencies
+      run: npm install
+    - name: Run build task
+      run: npm run build --if-present
+    - name: Get a date stamp
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d-%H%M')"
+    - name: Deploy to Server
+      uses: easingthemes/ssh-deploy@v2.1.1
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "my-app/build/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET }}/${{steps.date.outputs.date}}   
+    - name: link new deploy location
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        command: ln -sfn ${{ secrets.REMOTE_TARGET }}/${{steps.date.outputs.date}} ${{ secrets.REMOTE_TARGET }}/current
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
+    - uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
+      env:
+        GITHUB_TOKEN: ${{ github.token }} # optional
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
+      if: always() # Pick up events even if the job fails or is canceled.
