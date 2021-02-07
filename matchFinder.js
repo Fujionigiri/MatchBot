@@ -20,14 +20,13 @@ var day;
 const jSonId = 0;
 const jSonName = 1;
 const jSonChannel = 2;
-const jSonOutput = 3;
-const jSonDes = 4;
-const jSonMaxTeams = 5;
-const jSonWeek = 6;
-const jSonDate = 7;
-const jSonQueue = 8;
-const jSonStart = 9;
-const jSonEnd = 10;
+const jSonDes = 3;
+const jSonMaxTeams = 4;
+const jSonWeek = 5;
+const jSonDate = 6;
+const jSonQueue = 7;
+const jSonStart = 8;
+const jSonEnd = 9;
 
 
 //Adds team to requested game queue (example: !overwatch 3 -> adds coaches discord id to matches.json overwatch queue under 3 teams) 
