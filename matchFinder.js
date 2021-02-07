@@ -38,7 +38,7 @@ const jSonEnd = 9;
 //if date and time are valid and game exists.
 function gameQ(message, call, name, numTeams)
 {
-    var participants = JSON.parse(fs.readFileSync('matches.json', 'utf-8'));
+    var participants = JSON.parse(fs.readFileSync('./matches.json', 'utf-8'));
     var gamePos = 0;
     var teamNumbers = "teams " + numTeams;
     for(var j = 0; j < participants.length; j++)
@@ -177,9 +177,6 @@ function getCurrentMatches() {
         {
             message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
             console.log(err);
-        }
-        else {
-            console.log("Log added");
         }
     });
 
