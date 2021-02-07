@@ -10,6 +10,11 @@
         "des": "Set default channel. Current default: "
     },
     {
+        "id": "output",
+        "command": "output {id} {date}",
+        "des": "Outputs matches on selected date. Form the date with 8 digits ex: 02072021"
+    },
+    {
         "id": "add",
         "command": "add {id} {name}",
         "des": "Add game to list, id is the command - no spaces"
