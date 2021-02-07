@@ -17,6 +17,12 @@ const matchLog = require("./matchLog.json");
 const prefix = "!";
 var numGames = 0;
 var day;
+var currentWeekDay;
+var currentDay;
+var currentMonth;
+var currentYear;
+var currentHour;
+var currentMinutes;
 const jSonId = 0;
 const jSonName = 1;
 const jSonChannel = 2;
@@ -27,8 +33,6 @@ const jSonDate = 6;
 const jSonQueue = 7;
 const jSonStart = 8;
 const jSonEnd = 9;
-process.env.TZ = 'America/New_York';
-
 
 //Adds team to requested game queue (example: !overwatch 3 -> adds coaches discord id to matches.json overwatch queue under 3 teams) 
 //if date and time are valid and game exists.
@@ -84,12 +88,7 @@ function gameQ(message, call, name, numTeams)
 
 //checks through games array to find tournaments that are currently in progress
 function getCurrentMatches() {
-    day = new Date();
     //get current date
-    var currentWeekDay = day.getDay();
-    var currentMonth = day.getMonth() + 1;
-    var currentDay =  day.getDate();
-    var currentYear =  day.getFullYear();
     var participants = JSON.parse(fs.readFileSync('matches.json', 'utf-8'));
     var log = JSON.parse(fs.readFileSync('matchLog.json', 'utf-8'));
     var completeDate = (currentMonth < 10) ? (currentDay < 10 ? "0" + currentMonth.toString() + "0" + currentDay.toString() + currentYear.toString()
@@ -112,8 +111,9 @@ function getCurrentMatches() {
         var endHr="";
         var endMin="";
         endTime = 0;
-        var currentTime = (day.getMinutes < 10) ? parseInt(day.getHours().toString() + "0" + day.getMinutes().toString()):
-                                                    parseInt(day.getHours().toString() + day.getMinutes().toString());
+        
+        var currentTime = (currentMinutes < 10) ? parseInt(currentHour.toString() + "0" + currentMinutes.toString()):
+                                                    parseInt(currentHour.toString() + currentMinutes.toString());
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
         var date = (games[i][dateKey] != "none") ? (parseInt(games[i][dateKey])) : (games[i][dateKey]);
         var dateMonth="";
@@ -807,7 +807,6 @@ function hasPermission(message, role)
 //add team to queue if the time/date/max teams conditions are met
 function addToQueue(message, id, game, numTeams) {
     //Get game info
-    day = new Date();
     var gameList = JSON.parse(fs.readFileSync('games.json', 'utf-8'));
     const gameName = gameList[game]["name"];
     const channelKey = Object.keys(gameList[game])[jSonChannel];
@@ -819,8 +818,8 @@ function addToQueue(message, id, game, numTeams) {
     const maxTeamsKey = Object.keys(gameList[game])[jSonMaxTeams];
     const queueKey = Object.keys(gameList[game])[jSonQueue];
     
-    var currentTime = (day.getMinutes() < 10) ? (parseInt(day.getHours().toString() + "0" + day.getMinutes().toString()))
-                                                : (parseInt(day.getHours().toString() + day.getMinutes().toString()));
+    var currentTime = (currentMinutes < 10) ? (parseInt(currentHour.toString() + "0" + currentMinutes.toString()))
+                                                : (parseInt(currentHour.toString() + currentMinutes.toString()));
     
     var weekday = (gameList[game][dayKey] != "none") ? (parseInt(gameList[game][dayKey])) : (gameList[game][dayKey]);
     var date = (gameList[game][dateKey] != "none") ? (parseInt(gameList[game][dateKey])) : (gameList[game][dateKey]);
@@ -860,7 +859,7 @@ function addToQueue(message, id, game, numTeams) {
     //Checks if weekday or date has been set, then checks time to make sure currentTime is valid to join queue
     if((weekday === "none" && date === "none") 
         || weekday == day.getDay()
-        || (day.getMonth() + 1 == dateMonth && day.getDate() == dateDay && day.getFullYear() == dateYear)) {
+        || (currentMonth + 1 == dateMonth && currentDay == dateDay && currentYear == dateYear)) {
         if((currentTime >= queueTime && currentTime <= endTime) 
             || (queueTime === "none" && currentTime <= endTime) 
             || (currentTime >= queueTime && endTime === "none")
@@ -923,13 +922,6 @@ client.on('ready', (evt) => {
 });
 
 function scheduleStartTime() {
-    day = new Date();
-    //get current date
-    var currentWeekDay = day.getDay();
-    var currentMonth = day.getMonth() + 1;
-    var currentDay =  day.getDate();
-    var currentYear =  day.getFullYear();
-
     //scroll through game json and find all games with current day of the week or current date
 
     for(var i = 0; i < games.length; i++)
@@ -1026,7 +1018,16 @@ client.on('message', message => {
     var command;
     let found = false;
     let adminFound = false;
+    day = new Date();
+    currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
+    currentMonth = (day.getUTCHours() < 5) ? day.getUTCMonth() : day.getUTCMonth() + 1;
+    currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
+    currentYear = (day.getUTCHours() < 5) ? day.getUTCFullYear() - 1: day.getUTCFullYear();
+    currentMinutes = day.getUTCMinutes();
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 12 : day.getUTCHours() - 5;
 
+    //console.log("weekday: " + currentWeekDay + "\nmonth: " + currentMonth + "\nday: " + currentDay
+    //                + "\nyear: " + currentYear + "\nhour: "+ currentHour + "\nminutes: " + currentMinutes);
     //set default channel from this message if it doesn't already exist
     if(config.MAIN_CHANNEL === "none") {
         config.MAIN_CHANNEL = message.channel.id;
