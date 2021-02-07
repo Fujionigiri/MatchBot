@@ -10,13 +10,14 @@ const cron = require('node-cron');
 var cronJobs = [];
 var fs = require("fs");
 var path = require("path");
-const games = require("./games.json");
+const gameJson = require("./games.json");
 const admin = require("./admin.json");
 const matches = require("./matches.json");
 const teams = require("./teams.json");
 const matchLog = require("./matchLog.json");
 const prefix = "!";
 var numGames = 0;
+var games;
 var day;
 var currentWeekDay;
 var currentDay;
@@ -92,6 +93,7 @@ function gameQ(message, call, name, numTeams)
 function getCurrentMatches() {
     //get current date
     var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/matches.json'), 'utf-8'));
+
     var log = JSON.parse(fs.readFileSync(path.join(__dirname + '/matchLog.json'), 'utf-8'));
     var completeDate = (currentMonth < 10) ? (currentDay < 10 ? "0" + currentMonth.toString() + "0" + currentDay.toString() + currentYear.toString()
                                                                 : "0" + currentMonth.toString() + currentDay.toString() + currentYear.toString())
@@ -142,7 +144,7 @@ function getCurrentMatches() {
             && games[i][startTimeKey] != "none")
         {
             if(currentTime >= startTime && currentTime <= endTime){
-                setMatches(games[i][id], participants, completeDate, log);
+                setMatches(games[i][id], participants, completeDate, games, log);
             }
         }
         //if start time hasn't been set the matches are released at noon
@@ -150,14 +152,14 @@ function getCurrentMatches() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear))
              && games[i][startTimeKey] === "none")
         {
-            setMatches(games[i][id], participants, completeDate, log);
+            setMatches(games[i][id], participants, completeDate, games, log);
         }
         //if no date or day of week has been set then adds cron job as specified game start time
         else if(weekday === "none" && date === "none" && games[i][startTimeKey] != "none") {
-            setMatches(games[i][id], participants, completeDate, log);
+            setMatches(games[i][id], participants, completeDate, games, log);
         }
         else if(weekday === "none" && date === "none" && games[i][startTimeKey] === "none") {
-            setMatches(games[i][id], participants, completeDate, log);
+            setMatches(games[i][id], participants, completeDate, games, log);
         }
     }
     fs.writeFile("matches.json", JSON.stringify(participants, null, 4), (err) =>
@@ -187,7 +189,7 @@ function getCurrentMatches() {
 }
 
 //Send out match notifications
-function setMatches(gameId, participants, completeDate, log) {
+function setMatches(gameId, participants, completeDate, games, log) {
     
     var gamePos = 0;
     var channel = "";
@@ -280,6 +282,7 @@ function helpCommand(message)
 {
     var output = "```md";
     output += ("\n# Queue commands");
+
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -397,6 +400,7 @@ function addGame(message, id, name) {
         message.channel.send("```diff\n- Error: Enter an id and game name. The id should have no spaces, the game name can have spaces.```");
         return;
     }
+
     //checks to see if game already exists (by id)
     for(var i = 0; i < games.length; i++)
     {
@@ -921,7 +925,6 @@ client.on('ready', (evt) => {
 
 function scheduleStartTime() {
     //scroll through game json and find all games with current day of the week or current date
-
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -1010,6 +1013,7 @@ client.on('message', message => {
     {
         return;
     }
+    games = JSON.parse(fs.readFileSync(path.join(__dirname + '/games.json'), 'utf-8'));
     const args = message.content.slice(prefix.length).split(/ +/);
     const call = args.shift().toLowerCase();
     var id;
