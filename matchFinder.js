@@ -40,7 +40,7 @@ const jSonEnd = 9;
 function gameQ(message, call, name, numTeams)
 {
     console.log("directory: " + __dirname);
-    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + 'matches.json'), 'utf-8'));
+    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/matches.json'), 'utf-8'));
     var gamePos = 0;
     var teamNumbers = "teams " + numTeams;
     for(var j = 0; j < participants.length; j++)
@@ -91,8 +91,8 @@ function gameQ(message, call, name, numTeams)
 //checks through games array to find tournaments that are currently in progress
 function getCurrentMatches() {
     //get current date
-    var participants = JSON.parse(fs.readFileSync('/matches.json', 'utf-8'));
-    var log = JSON.parse(fs.readFileSync('/matchLog.json', 'utf-8'));
+    var participants = JSON.parse(fs.readFileSync('./matches.json', 'utf-8'));
+    var log = JSON.parse(fs.readFileSync('./matchLog.json', 'utf-8'));
     var completeDate = (currentMonth < 10) ? (currentDay < 10 ? "0" + currentMonth.toString() + "0" + currentDay.toString() + currentYear.toString()
                                                                 : "0" + currentMonth.toString() + currentDay.toString() + currentYear.toString())
                                                                 : currentMonth.toString() + currentDay.toLowerCase() + currentYear.toString();
@@ -247,7 +247,7 @@ function setMatches(gameId, participants, completeDate, log) {
 //Clears all queues when called to
 function clearQueues() {
     console.log("Clearing queues");
-    var participants = JSON.parse(fs.readFileSync('/matches.json', 'utf-8'));
+    var participants = JSON.parse(fs.readFileSync('./matches.json', 'utf-8'));
     for(var j = 0; j < participants.length; j++)
     {
         for(var i = 1; i < Object.keys(participants[j]).length; i++)
@@ -359,7 +359,7 @@ function addDefault(message, channelID){
 
 //Outputs the matches on selected date
 function outputMatches(message, id, date) {
-    var log = JSON.parse(fs.readFileSync('/matchLog.json', 'utf-8'));
+    var log = JSON.parse(fs.readFileSync('./matchLog.json', 'utf-8'));
     var gameLogPos = -1;
     for(var j = 0; j < log.length; j++)
     {
@@ -805,7 +805,7 @@ function hasPermission(message, role)
 //add team to queue if the time/date/max teams conditions are met
 function addToQueue(message, id, game, numTeams) {
     //Get game info
-    var gameList = JSON.parse(fs.readFileSync('/games.json', 'utf-8'));
+    var gameList = JSON.parse(fs.readFileSync('./games.json', 'utf-8'));
     const gameName = gameList[game]["name"];
     const channelKey = Object.keys(gameList[game])[jSonChannel];
     const dayKey = Object.keys(gameList[game])[jSonWeek];
