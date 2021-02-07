@@ -27,6 +27,7 @@ const jSonDate = 6;
 const jSonQueue = 7;
 const jSonStart = 8;
 const jSonEnd = 9;
+process.env.TZ = 'America/New_York';
 
 
 //Adds team to requested game queue (example: !overwatch 3 -> adds coaches discord id to matches.json overwatch queue under 3 teams) 
