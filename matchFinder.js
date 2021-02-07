@@ -40,7 +40,7 @@ const jSonEnd = 9;
 function gameQ(message, call, name, numTeams)
 {
     console.log("directory: " + __dirname);
-    var participants = JSON.parse(fs.readFileSync(require.resolve('./matches.json'), 'utf-8'));
+    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + 'matches.json'), 'utf-8'));
     var gamePos = 0;
     var teamNumbers = "teams " + numTeams;
     for(var j = 0; j < participants.length; j++)
