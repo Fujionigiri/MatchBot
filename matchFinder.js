@@ -913,6 +913,7 @@ function addToQueue(message, id, game, numTeams) {
 //connection ready
 client.on('ready', (evt) => {
     console.log("Connected");
+    games = JSON.parse(fs.readFileSync(path.join(__dirname + '/games.json'), 'utf-8'));
     numGames = games.length;
     let scheduledMessage = new cron.schedule('00 00 05 * * *', () => {
     // This runs every day at 05:00:00 to set tournament start schedule
@@ -1026,10 +1027,10 @@ client.on('message', message => {
     currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = (day.getUTCHours() < 5) ? day.getUTCFullYear() - 1: day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
-    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 12 : day.getUTCHours() - 5;
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
 
-    //console.log("weekday: " + currentWeekDay + "\nmonth: " + currentMonth + "\nday: " + currentDay
-    //                + "\nyear: " + currentYear + "\nhour: "+ currentHour + "\nminutes: " + currentMinutes);
+    console.log("weekday: " + currentWeekDay + "\nmonth: " + currentMonth + "\nday: " + currentDay
+                    + "\nyear: " + currentYear + "\nhour: "+ currentHour + "\nminutes: " + currentMinutes);
     //set default channel from this message if it doesn't already exist
     if(config.MAIN_CHANNEL === "none") {
         config.MAIN_CHANNEL = message.channel.id;
