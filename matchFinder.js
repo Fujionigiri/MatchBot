@@ -74,7 +74,7 @@ function gameQ(message, call, name, numTeams)
     }
     
     participants[gamePos][teamNumbers][value] = message.member.user.id;
-    fs.writeFile("matches.json", JSON.stringify(participants, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/matches.json'), JSON.stringify(participants, null, 4), (err) =>
     {
         if (err)
         {
@@ -162,7 +162,7 @@ function getCurrentMatches() {
             setMatches(games[i][id], participants, completeDate, games, log);
         }
     }
-    fs.writeFile("matches.json", JSON.stringify(participants, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/matches.json'), JSON.stringify(participants, null, 4), (err) =>
     {
         if (err)
         {
@@ -174,7 +174,7 @@ function getCurrentMatches() {
             //client.channels.cache.get(channelID).send("```diff\n+ Teams Matched.```");
         }
     });
-    fs.writeFile('matchLog.json', JSON.stringify(log, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/matchLog.json'), JSON.stringify(log, null, 4), (err) =>
     {
         if (err)
         {
@@ -263,7 +263,7 @@ function clearQueues() {
             }
         }
     }
-    fs.writeFile("matches.json", JSON.stringify(participants, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/matches.json'), JSON.stringify(participants, null, 4), (err) =>
     {
         if (err)
         {
@@ -329,7 +329,7 @@ function adminMenu(message)
 //add role for queue access
 function addRole(message, role){
     config.COACH_ROLE = role;
-    fs.writeFile("config.json", JSON.stringify(config, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/config.json'), JSON.stringify(config, null, 4), (err) =>
     {
         if (err)
         {
@@ -346,7 +346,7 @@ function addRole(message, role){
 //add default channel
 function addDefault(message, channelID){
     config.MAIN_CHANNEL = channelID;
-    fs.writeFile("config.json", JSON.stringify(config, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/config.json'), JSON.stringify(config, null, 4), (err) =>
     {
         if (err)
         {
@@ -425,7 +425,7 @@ function addGame(message, id, name) {
                             + "\", \n\"end time\": \"" + "none" + "\"}"));
 
     //update games.json with new games array file
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -436,7 +436,7 @@ function addGame(message, id, name) {
         {
             //create section in matches.json for new game
             matches.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\"}"));
-            fs.writeFile('matches.json', JSON.stringify(matches, null, 4), (err) =>
+            fs.writeFile(path.join(__dirname + '/matches.json'), JSON.stringify(matches, null, 4), (err) =>
             {
                 if (err)
                 {
@@ -448,7 +448,7 @@ function addGame(message, id, name) {
                 }
             });
             matchLog.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\"}"));
-            fs.writeFile('matchLog.json', JSON.stringify(matchLog, null, 4), (err) =>
+            fs.writeFile(path.join(__dirname + '/matchLog.json'), JSON.stringify(matchLog, null, 4), (err) =>
             {
                 if (err)
                 {
@@ -473,7 +473,7 @@ function removeGame(message, id) {
     //if id is found remove game and update games.json
     if(index > -1) {
         games.splice(index, 1);
-        fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+        fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
         {
             if (err)
             {
@@ -488,7 +488,7 @@ function removeGame(message, id) {
         index = matches.findIndex(a=> a.id === id);
         if(index > -1) {
             matches.splice(index, 1);
-            fs.writeFile("matches.json", JSON.stringify(matches, null, 4), (err) =>
+            fs.writeFile(path.join(__dirname + '/matches.json'), JSON.stringify(matches, null, 4), (err) =>
             {
                 if (err)
                 {
@@ -520,7 +520,7 @@ function addDes(message, id, des) {
         return;
     }
     games[index]["des"] = des;
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -547,7 +547,7 @@ function addChannel(message, id, channelid) {
         return;
     }
     games[index]["channel"] = channelid;
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -573,7 +573,7 @@ function addWeekday(message, id, dayOfWeek) {
         return;
     }
     games[index]["weekday"] = (dayOfWeek === "none") ? ("none" ) : (parseInt(dayOfWeek) - 1).toString();
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -602,7 +602,7 @@ function addDay(message, id, date) {
         return;
     }
     games[index]["date"] = date;
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -637,7 +637,7 @@ function addQueueTime(message, id, queueTime) {
         return;
     }
     games[index]["queue time"] = queueTime;
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -680,7 +680,7 @@ function addTime(message, id, start, end) {
     }
     games[index]["start time"] = start;
     games[index]["end time"] = end;
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -757,7 +757,7 @@ function setMaxTeams(message, id, numTeams){
         return;
     }
     games[index]["max teams"] = numTeams;
-    fs.writeFile("games.json", JSON.stringify(games, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
         if (err)
         {
@@ -1033,7 +1033,7 @@ client.on('message', message => {
     //set default channel from this message if it doesn't already exist
     if(config.MAIN_CHANNEL === "none") {
         config.MAIN_CHANNEL = message.channel.id;
-        fs.writeFile("config.json", JSON.stringify(config, null, 4), (err) =>
+        fs.writeFile(path.join(__dirname + '/config.json'), JSON.stringify(config, null, 4), (err) =>
         {
             if (err)
             {
