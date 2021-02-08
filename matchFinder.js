@@ -903,7 +903,9 @@ function addToQueue(message, id, game, numTeams) {
 
 
                     ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s from " + queueTime + " to " + endTime + "current day is " + getWeekday(currentWeekDay.toString()) + "```");
+                    + getWeekday(weekday.toString()) + "s from " + queueTime + " to " + endTime 
+                        + " current day is " + getWeekday(currentWeekDay.toString()) 
+                        + " current time " + currentTime +  "```");
 
         message.channel.send(messageTxt);
         return;
