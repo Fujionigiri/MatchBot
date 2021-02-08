@@ -54,10 +54,17 @@ jobs:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
+    - name: symlink data dir
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        command: rm -rf /usr/local/deploy/MatchBot/current/data && ln -sfn ${{ secrets.REMOTE_TARGET }}/data ${{ secrets.REMOTE_TARGET }}/current/data
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
     - name: symlink configs
       uses: garygrossgarten/github-action-ssh@release
       with:
-        command: ln -sfn ${{ secrets.REMOTE_TARGET }}/secrets/config.json ${{ secrets.REMOTE_TARGET }}/current/config.json
+        command: ln -sfn ${{ secrets.REMOTE_TARGET }}/secrets/config.json ${{ secrets.REMOTE_TARGET }}/current/data/config.json
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
