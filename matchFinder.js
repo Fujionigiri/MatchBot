@@ -289,7 +289,7 @@ function helpCommand(message)
         const des = Object.keys(games[i])[jSonDes];
         const channelID = Object.keys(games[i])[jSonChannel];
         if(message.channel.id == config.MAIN_CHANNEL || message.channel.id == games[i][channelID])
-            output += ("\n- <  " + prefix + games[i][id] + "  > " + games[i][des]);
+            output += ("\n- <  " + prefix + games[i][id] + " #  > " + games[i][des]);
     }
     
     if(games.length == 0) {
@@ -360,7 +360,7 @@ function addDefault(message, channelID){
     });
 }
 
-//Outputs the matches on selected date
+//Outputs the matches on selected date from the matchLog
 function outputMatches(message, id, date) {
     var log = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matchLog.json'), 'utf-8'));
     var gameLogPos = -1;
@@ -376,22 +376,105 @@ function outputMatches(message, id, date) {
         return;
     }
     var output = "```md";
-    output += ("\n# Matches for " + date);
+    output += ("\n# Matches for " + id + " on " + date);
     
     for(var i = 0; i < Object.keys(log[gameLogPos][date]).length; i++)
     {
         var teamsKey = Object.keys(log[gameLogPos][date])[i];
+        output += "\n# " + teamsKey;
         for(var j = 0; j < Object.keys(log[gameLogPos][date][teamsKey]).length; j++)
         {
             var matchKey = Object.keys(log[gameLogPos][date][teamsKey])[j];
             var teams = log[gameLogPos][date][teamsKey][matchKey];
             team1 = teams.substr(0, teams.indexOf(" "));
             team2 = teams.substr(teams.indexOf(" ") + 1);
-            output += "\n- <@" + client.users.cache.find(user => user.id === team1) + "> vs <@" + client.users.cache.find(user => user.id === team2) + ">";
+            team1 = (client.users.cache.get(team1) == null) ? team1 : (client.users.cache.get(team1).username);
+            team2 = (client.users.cache.get(team2) == null) ? team2 : (client.users.cache.get(team2).username);
+            output += "\n- < " + team1 + " > vs < " + team2 + " >";
         }
     }
     output += "\n```";
     message.channel.send(output);
+}
+
+function listTeams(message, id) {
+    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
+    var gamePos = -1;
+    for(var j = 0; j < participants.length; j++)
+    {
+        if(participants[j].id == id)
+        {
+            gamePos = j;
+        }
+    }
+    if(gamePos == -1){
+        message.channel.send("```diff\n- " + id + " is not an available game.```");
+        return;
+    }
+    var output = "```md";
+    output += ("\n# Matches for " + id);
+    
+    for(var i = 0; i < Object.keys(participants[gamePos]).length; i++)
+    {
+        var teamsKey = Object.keys(participants[gamePos])[i];
+        if(teamsKey != "id") {
+            output += "\n# " + teamsKey;
+            for(var j = 0; j < Object.keys(participants[gamePos][teamsKey]).length; j++)
+            {
+                var matchKey = Object.keys(participants[gamePos][teamsKey])[j];
+                var team = participants[gamePos][teamsKey][matchKey];
+                team = (client.users.cache.get(team) == null) ? team : (client.users.cache.get(team).username);
+                output += "\n- < " + team + " >";
+            }
+        }
+    }
+    output += "\n```";
+    message.channel.send(output);
+}
+
+function removeTeam(message, id, coachId){
+    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
+    var gamePos = -1;
+    for(var j = 0; j < participants.length; j++)
+    {
+        if(participants[j].id == id)
+        {
+            gamePos = j;
+        }
+    }
+    if(gamePos == -1){
+        message.channel.send("```diff\n- " + id + " is not an available game.```");
+        return;
+    }
+    
+    for(var i = 0; i < Object.keys(participants[gamePos]).length; i++)
+    {
+        var teamsKey = Object.keys(participants[gamePos])[i];
+        if(teamsKey != "id") {
+            for(var j = 0; j < Object.keys(participants[gamePos][teamsKey]).length; j++)
+            {
+                var matchKey = Object.keys(participants[gamePos][teamsKey])[j];
+                if(matchKey === coachId) {
+                    delete participants[gamePos][teamsKey][matchKey];
+                    message.channel.send("```diff\n- Team has been removed.```");
+                    fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
+                    {
+                        if (err)
+                        {
+                            client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
+                            console.log(err);
+                        }
+                        else
+                        {
+                            //client.channels.cache.get(channelID).send("```diff\n+ Teams Matched.```");
+                        }
+                    });
+                    return;
+                }
+            }
+        }
+    }
+    message.channel.send("```diff\n- There is no team in the selected queue with that id.```");
 }
 
 //Adds new game to list if it doesn't already exist by id, adds info to games.json and creates a matching json to store queued teams
@@ -1047,7 +1130,7 @@ client.on('message', message => {
     for(var i = 0; i < games.length; i++)
     {
         id = Object.keys(games[i])[jSonId];
-        if(games[i][id] === call)
+        if(games[i][id].toLowerCase() === call)
         {
             game = i;
             found = true;
@@ -1059,7 +1142,7 @@ client.on('message', message => {
     for(var i = 0; i < admin.length; i++)
     {
         command = Object.keys(admin[i])[0];
-        if(admin[i][command] === call)
+        if(admin[i][command] === call || call === "clearqueues")
         {
             adminCommand = i;
             adminFound = true;
@@ -1099,12 +1182,26 @@ client.on('message', message => {
                 }
                 addDefault(message, args.join(" "));
                 break;
-            case "output":
+            case "log":
                 if(args.length < 2){
                     message.channel.send("```diff\n- Invalid number of arguments.```");
                     return;
                 }
                 outputMatches(message, args.shift().toLowerCase(), args.join(" "));
+                break;
+            case "list":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                listTeams(message, args.join(" "));
+                break;
+            case "removeteam":
+                if(args.length < 2){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                removeTeam(message, args.shift().toLowerCase(), args.join(" "));
                 break;
             case "add":
                 if(args.length < 2){
@@ -1175,6 +1272,16 @@ client.on('message', message => {
                     return; 
                 }
                 addQueueTime(message, args.shift().toLowerCase(), args.join(" "));
+                break;
+            case "clearqueues":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                if(args.join(" ") === "admin")
+                    clearQueues();
+                else
+                    message.channel.send("```diff\n- Invalid password.```");
                 break;
         }
     }

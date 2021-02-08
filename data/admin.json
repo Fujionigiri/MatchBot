@@ -10,9 +10,19 @@
         "des": "Set default channel. Current default: "
     },
     {
-        "id": "output",
-        "command": "output {id} {date}",
-        "des": "Outputs matches on selected date. Form the date with 8 digits ex: 02072021"
+        "id": "log",
+        "command": "log {id} {date}",
+        "des": "Outputs matches from selected date, ex: 02072021"
+    },
+    {
+        "id": "list",
+        "command": "list {id}",
+        "des": "Outputs all teams in selected game queue"
+    },
+    {
+        "id": "removeteam",
+        "command": "removeTeam {gameId} {coachId}",
+        "des": "Remove selected coach from gameId queue"
     },
     {
         "id": "add",
