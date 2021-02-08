@@ -860,7 +860,7 @@ function addToQueue(message, id, game, numTeams) {
     }
     //Checks if weekday or date has been set, then checks time to make sure currentTime is valid to join queue
     if((weekday === "none" && date === "none") 
-        || weekday == day.getDay()
+        || weekday == currentWeekDay
         || (currentMonth + 1 == dateMonth && currentDay == dateDay && currentYear == dateYear)) {
         if((currentTime >= queueTime && currentTime <= endTime) 
             || (queueTime === "none" && currentTime <= endTime) 
@@ -901,11 +901,8 @@ function addToQueue(message, id, game, numTeams) {
                     (endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + getWeekday(weekday.toString()) + "s starting at " + queueTime + "```"):
 
-
                     ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s from " + queueTime + " to " + endTime 
-                        + " current day is " + getWeekday(currentWeekDay.toString()) 
-                        + " current time " + currentTime +  "```");
+                    + getWeekday(weekday.toString()) + "s from " + queueTime + " to " + endTime +  "```");
 
         message.channel.send(messageTxt);
         return;
