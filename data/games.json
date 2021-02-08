@@ -7,9 +7,9 @@
         "max teams": "10",
         "weekday": "0",
         "date": "none",
-        "queue time": "1100",
-        "start time": "1253",
-        "end time": "1300"
+        "queue time": "1520",
+        "start time": "1950",
+        "end time": "2100"
     },
     {
         "id": "rocket",
@@ -20,7 +20,19 @@
         "weekday": "0",
         "date": "none",
         "queue time": "none",
-        "start time": "1254",
-        "end time": "1300"
+        "start time": "1630",
+        "end time": "1800"
+    },
+    {
+        "id": "lol",
+        "name": "League of Legends",
+        "channel": "none",
+        "des": "add description",
+        "max teams": "10",
+        "weekday": "none",
+        "date": "none",
+        "queue time": "none",
+        "start time": "none",
+        "end time": "none"
     }
 ]
