@@ -101,7 +101,7 @@ function getCurrentMatches() {
     var channelID = config.MAIN_CHANNEL;
     //scroll through game json and find all games with current day of the week or current date
     day = new Date();
-    currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
+    currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay()-1: day.getUTCDay();
     currentMonth = day.getUTCMonth() + 1;
     currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = day.getUTCFullYear();
@@ -926,7 +926,10 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), { timezone : 300}
+                ),{
+                    scheduled: true,
+                    timezone: "America/New_York"
+                  }
             );
             //console.log("Schedule set for " + games[i][id]);
         }
@@ -941,7 +944,10 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), { timezone : 300}
+                ), {
+                    scheduled: true,
+                    timezone: "America/New_York"
+                  }
             );
         }
         //if no date or day of week has been set then adds cron job as specified game start time
@@ -953,7 +959,10 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), { timezone : 300}
+                ), {
+                    scheduled: true,
+                    timezone: "America/New_York"
+                  }
             );
         }
         else if(weekday === "none" && date === "none" && games[i][startTimeKey] === "none") {
@@ -963,7 +972,10 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), { timezone : 300}
+                ), {
+                    scheduled: true,
+                    timezone: "America/New_York"
+                  }
             );
         }
     }
