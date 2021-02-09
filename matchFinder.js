@@ -905,7 +905,7 @@ function scheduleStartTime() {
         var dateDay="";
         var dateYear="";
         if(games[i][startTimeKey] != "none") {
-            startHr = games[i][startTimeKey].substr(0,2);
+            startHr = (parseInt(games[i][startTimeKey].substr(0,2))+5).toString();
             startMin = games[i][startTimeKey].substr(2,2);
         }
         if(date != "none") {
