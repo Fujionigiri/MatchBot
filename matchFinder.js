@@ -260,12 +260,16 @@ function clearQueues() {
             }
         }
     }
+    var channelID = config.MAIN_CHANNEL;
     fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(matches, null, 4), (err) =>
     {
         if (err)
         {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
             console.log(err);
+        }
+        else {
+            client.channels.cache.get(channelID).send("```diff\n- Queues cleared.```");
         }
     });
 }
