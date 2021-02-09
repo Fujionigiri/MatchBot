@@ -260,7 +260,14 @@ function clearQueues() {
             }
         }
     }
-    updateJson(message, "matches", participants, "none");
+    fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(matches, null, 4), (err) =>
+    {
+        if (err)
+        {
+            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+    });
 }
 
 //Displays queue menu in discord channel where called
