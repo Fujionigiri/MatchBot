@@ -905,7 +905,20 @@ function scheduleStartTime() {
         var dateDay="";
         var dateYear="";
         if(games[i][startTimeKey] != "none") {
-            startHr = (parseInt(games[i][startTimeKey].substr(0,2))+5).toString();
+            var sTime = 0;
+            if(parseInt(games[i][startTimeKey].substr(0,2)) > 19) {
+                sTime = (parseInt(games[i][startTimeKey].substr(0,2)) - 19)
+                startHr = "0" + sTime.toString();
+            }
+            else{
+                sTime = (parseInt(games[i][startTimeKey].substr(0,2)) + 5)
+                if(sTime < 10){
+                    startHr = "0" + sTime.toString();
+                }
+                else {
+                    startHr = sTime.toString();
+                }
+            }
             startMin = games[i][startTimeKey].substr(2,2);
         }
         if(date != "none") {
