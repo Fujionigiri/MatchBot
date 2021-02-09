@@ -926,10 +926,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ),{
-                    scheduled: true,
-                    timezone: "America/New_York"
-                  }
+                ), undefined, true, "America/New_York"
             );
             //console.log("Schedule set for " + games[i][id]);
         }
@@ -944,10 +941,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), {
-                    scheduled: true,
-                    timezone: "America/New_York"
-                  }
+                ), undefined, true, "America/New_York"
             );
         }
         //if no date or day of week has been set then adds cron job as specified game start time
@@ -959,10 +953,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), {
-                    scheduled: true,
-                    timezone: "America/New_York"
-                  }
+                ), undefined, true, "America/New_York"
             );
         }
         else if(weekday === "none" && date === "none" && games[i][startTimeKey] === "none") {
@@ -972,10 +963,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), {
-                    scheduled: true,
-                    timezone: "America/New_York"
-                  }
+                ), undefined, true, "America/New_York"
             );
         }
     }
