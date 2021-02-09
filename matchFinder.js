@@ -17,6 +17,7 @@ const teams = require("./data/teams.json");
 const matchLog = require("./data/matchLog.json");
 const prefix = "!";
 var numGames = 0;
+var participants;
 var games;
 var day;
 var currentWeekDay;
@@ -41,7 +42,6 @@ const jSonEnd = 9;
 function gameQ(message, call, name, numTeams)
 {
     //console.log("directory: " + __dirname);
-    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     var gamePos = 0;
     var teamNumbers = "teams " + numTeams;
     for(var j = 0; j < participants.length; j++)
@@ -92,7 +92,7 @@ function gameQ(message, call, name, numTeams)
 //checks through games array to find tournaments that are currently in progress
 function getCurrentMatches() {
     //get current date
-    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
+    participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
 
     var log = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matchLog.json'), 'utf-8'));
     var completeDate = (currentMonth < 10) ? (currentDay < 10 ? "0" + currentMonth.toString() + "0" + currentDay.toString() + currentYear.toString()
@@ -100,7 +100,13 @@ function getCurrentMatches() {
                                                                 : currentMonth.toString() + currentDay.toLowerCase() + currentYear.toString();
     var channelID = config.MAIN_CHANNEL;
     //scroll through game json and find all games with current day of the week or current date
-
+    day = new Date();
+    currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
+    currentMonth = day.getUTCMonth() + 1;
+    currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
+    currentYear = day.getUTCFullYear();
+    currentMinutes = day.getUTCMinutes();
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -169,31 +175,22 @@ function getCurrentMatches() {
             client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
             console.log(err);
         }
-        else
-        {
-            //client.channels.cache.get(channelID).send("```diff\n+ Teams Matched.```");
-        }
     });
+    
     fs.writeFile(path.join(__dirname + '/data/matchLog.json'), JSON.stringify(log, null, 4), (err) =>
     {
         if (err)
         {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
             console.log(err);
         }
     });
-
-    //add each game's start time to the cron job as long as the start time isn't "none"
-    
-    //if current time is >= start time, call to setMatches(gameId)
 }
 
 //Send out match notifications
 function setMatches(gameId, participants, completeDate, games, log) {
-    
     var gamePos = 0;
     var channel = "";
-    
     for(var j = 0; j < participants.length; j++)
     {
         if(participants[j].id == gameId)
@@ -226,6 +223,7 @@ function setMatches(gameId, participants, completeDate, games, log) {
         
         while (Object.keys(participants[gamePos][key]).length > 1)
         {
+            console.log("matching teams " + key);
             var team1Pos = Math.floor(Math.random() * Object.keys(participants[gamePos][key]).length);
             let team1 = Object.keys(participants[gamePos][key])[team1Pos];
             delete participants[gamePos][key][team1];
@@ -249,7 +247,6 @@ function setMatches(gameId, participants, completeDate, games, log) {
 //Clears all queues when called to
 function clearQueues() {
     console.log("Clearing queues");
-    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     for(var j = 0; j < participants.length; j++)
     {
         for(var i = 1; i < Object.keys(participants[j]).length; i++)
@@ -263,18 +260,7 @@ function clearQueues() {
             }
         }
     }
-    fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
-    {
-        if (err)
-        {
-            client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            //client.channels.cache.get(channelID).send("```diff\n+ Teams Matched.```");
-        }
-    });
+    updateJson(message, "matches", participants, "none");
 }
 
 //Displays queue menu in discord channel where called
@@ -329,35 +315,13 @@ function adminMenu(message)
 //add role for queue access
 function addRole(message, role){
     config.COACH_ROLE = role;
-    fs.writeFile(path.join(__dirname + '/data/config.json'), JSON.stringify(config, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ Coach role has been updated.```");
-        }
-    });
+    updateJson(message, "config", config, "```diff\n+ Coach role has been updated.```");
 }
 
 //add default channel
 function addDefault(message, channelID){
     config.MAIN_CHANNEL = channelID;
-    fs.writeFile(path.join(__dirname + '/data/config.json'), JSON.stringify(config, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ Coach role has been updated.```");
-        }
-    });
+    updateJson(message, "config", config, "```diff\n+ Default channel has been updated.```");
 }
 
 //Outputs the matches on selected date from the matchLog
@@ -398,7 +362,6 @@ function outputMatches(message, id, date) {
 }
 
 function listTeams(message, id) {
-    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     var gamePos = -1;
     for(var j = 0; j < participants.length; j++)
     {
@@ -433,7 +396,6 @@ function listTeams(message, id) {
 }
 
 function removeTeam(message, id, coachId){
-    var participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     var gamePos = -1;
     for(var j = 0; j < participants.length; j++)
     {
@@ -457,18 +419,7 @@ function removeTeam(message, id, coachId){
                 if(matchKey === coachId) {
                     delete participants[gamePos][teamsKey][matchKey];
                     message.channel.send("```diff\n- Team has been removed.```");
-                    fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
-                    {
-                        if (err)
-                        {
-                            client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
-                            console.log(err);
-                        }
-                        else
-                        {
-                            //client.channels.cache.get(channelID).send("```diff\n+ Teams Matched.```");
-                        }
-                    });
+                    updateJson(message, "matches", participants, "none");
                     return;
                 }
             }
@@ -483,6 +434,8 @@ function addGame(message, id, name) {
         message.channel.send("```diff\n- Error: Enter an id and game name. The id should have no spaces, the game name can have spaces.```");
         return;
     }
+
+    var log = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matchLog.json'), 'utf-8'));
 
     //checks to see if game already exists (by id)
     for(var i = 0; i < games.length; i++)
@@ -518,31 +471,22 @@ function addGame(message, id, name) {
         else
         {
             //create section in matches.json for new game
-            matches.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\"}"));
-            fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(matches, null, 4), (err) =>
+            matches.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\",\n\"teams 1\" : {}\n}"));
+            updateJson(message, "matches", matches, "none");
+            var gamePos = -1;
+            for(var j = 0; j < log.length; j++)
             {
-                if (err)
+                if(log[j].id == id)
                 {
-                    message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-                    console.log(err);
+                    gamePos = j;
                 }
-                else {
-                    console.log("game added to matches");
-                }
-            });
-            matchLog.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\"}"));
-            fs.writeFile(path.join(__dirname + '/data/matchLog.json'), JSON.stringify(matchLog, null, 4), (err) =>
-            {
-                if (err)
-                {
-                    message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-                    console.log(err);
-                }
-                else {
-                    console.log("game added to log");
-                }
-            });
-
+            }
+            //if game doesn't currently have a log add to json
+            if(gamePos == -1){
+                matchLog.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\"}"));
+                updateJson(message, "matchLog", matchLog, "none");
+                return;
+            }
             numGames = games.length;
             message.channel.send("```diff\n+ Game added (" + name + ").```");
         }
@@ -556,33 +500,11 @@ function removeGame(message, id) {
     //if id is found remove game and update games.json
     if(index > -1) {
         games.splice(index, 1);
-        fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
-        {
-            if (err)
-            {
-                message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-                console.log(err);
-            }
-            else
-            {
-                message.channel.send("```diff\n+ " + id + " has been removed.```");
-            }
-        });
+        updateJson(message, "games", games, "```diff\n+ " + id + " has been removed.```");
         index = matches.findIndex(a=> a.id === id);
         if(index > -1) {
             matches.splice(index, 1);
-            fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(matches, null, 4), (err) =>
-            {
-                if (err)
-                {
-                    message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-                    console.log(err);
-                }
-                else
-                {
-                    console.log("Queue removed");
-                }
-            });
+            updateJson(message, "matches", matches, "none");
         }
     }
     else {
@@ -603,18 +525,7 @@ function addDes(message, id, des) {
         return;
     }
     games[index]["des"] = des;
-    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ " + id + " description has been added/updated.```");
-        }
-    });
+    updateJson(message, "games", games, "```diff\n+ " + id + " description has been added/updated.```");
 }
 
 //Add a channel for listed game
@@ -630,18 +541,7 @@ function addChannel(message, id, channelid) {
         return;
     }
     games[index]["channel"] = channelid;
-    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ " + id + " channel has been added/updated.```");
-        }
-    });
+    updateJson(message, "games", games, "```diff\n+ " + id + " channel has been added/updated.```");
 }
 
 //Add a weekday (i.e. Sunday = 1, Monday = 2, etc.) for the queue to be available, none can be entered
@@ -656,18 +556,7 @@ function addWeekday(message, id, dayOfWeek) {
         return;
     }
     games[index]["weekday"] = (dayOfWeek === "none") ? ("none" ) : (parseInt(dayOfWeek) - 1).toString();
-    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ " + id + " weekly competition day has been added/updated.```");
-        }
-    });
+    updateJson(message, "games", games, "```diff\n+ " + id + " weekly competition day has been added/updated.```");
 }
 
 //Add a specific date for queue to be available, none can be entered
@@ -685,18 +574,7 @@ function addDay(message, id, date) {
         return;
     }
     games[index]["date"] = date;
-    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ " + id + " competition date has been added/updated.```");
-        }
-    });
+    updateJson(message, "games", games, "```diff\n+ " + id + " competition date has been added/updated.```")
 }
 
 function addQueueTime(message, id, queueTime) {
@@ -720,18 +598,7 @@ function addQueueTime(message, id, queueTime) {
         return;
     }
     games[index]["queue time"] = queueTime;
-    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ " + id + " competition queue time has been added/updated.```");
-        }
-    });
+    updateJson(message, "games", games, "```diff\n+ " + id + " competition queue time has been added/updated.```")
 }
 
 //Add start and end times for queue to be available, none can be entered for start, end or both for no restrictions
@@ -840,18 +707,7 @@ function setMaxTeams(message, id, numTeams){
         return;
     }
     games[index]["max teams"] = numTeams;
-    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
-    {
-        if (err)
-        {
-            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
-        }
-        else
-        {
-            message.channel.send("```diff\n+ " + id + " max competition entries has been added/updated.```");
-        }
-    });
+    updateJson(message, "games", games, "```diff\n+ " + id + " max competition entries has been added/updated.```")
 }
 
 //#endregion
@@ -992,6 +848,22 @@ function addToQueue(message, id, game, numTeams) {
     }
 }
 
+function updateJson(message, filename, file, output) {
+    fs.writeFile(path.join(__dirname + '/data/' + filename + '.json'), JSON.stringify(file, null, 4), (err) =>
+    {
+        if (err)
+        {
+            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+        else
+        {
+            if(output != "none")
+                message.channel.send(output);
+        }
+    });
+}
+
 //connection ready
 client.on('ready', (evt) => {
     console.log("Connected");
@@ -1007,7 +879,7 @@ client.on('ready', (evt) => {
 });
 
 function scheduleStartTime() {
-    //scroll through game json and find all games with current day of the week or current date
+    //scroll through game json and find all games with current day of the week or current date    
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -1022,8 +894,8 @@ function scheduleStartTime() {
         var dateDay="";
         var dateYear="";
         if(games[i][startTimeKey] != "none") {
-            startHr = parseInt(games[i][startTimeKey].substr(0,2));
-            startMin = parseInt(games[i][startTimeKey].substr(2,2));
+            startHr = games[i][startTimeKey].substr(0,2);
+            startMin = games[i][startTimeKey].substr(2,2);
         }
         if(date != "none") {
             dateMonth = parseInt(games[i][dateKey].substr(0,2));
@@ -1043,7 +915,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                )
+                ), { timezone : 300}
             );
             //console.log("Schedule set for " + games[i][id]);
         }
@@ -1058,7 +930,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                )
+                ), { timezone : 300}
             );
         }
         //if no date or day of week has been set then adds cron job as specified game start time
@@ -1070,7 +942,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                )
+                ), { timezone : 300}
             );
         }
         else if(weekday === "none" && date === "none" && games[i][startTimeKey] === "none") {
@@ -1080,7 +952,7 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                )
+                ), { timezone : 300}
             );
         }
     }
@@ -1096,6 +968,7 @@ client.on('message', message => {
     {
         return;
     }
+    participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     games = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/games.json'), 'utf-8'));
     const args = message.content.slice(prefix.length).split(/ +/);
     const call = args.shift().toLowerCase();
@@ -1105,12 +978,13 @@ client.on('message', message => {
     let adminFound = false;
     day = new Date();
     currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
-    currentMonth = (day.getUTCHours() < 5) ? day.getUTCMonth() : day.getUTCMonth() + 1;
+    currentMonth = day.getUTCMonth()+1;
     currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
-    currentYear = (day.getUTCHours() < 5) ? day.getUTCFullYear() - 1: day.getUTCFullYear();
+    currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
 
+    //console.log("month: " + day.getUTCMonth() + " day: " + day.getUTCDate() + " year: " + day.getUTCFullYear());
     //console.log("weekday: " + currentWeekDay + "\nmonth: " + currentMonth + "\nday: " + currentDay
     //                + "\nyear: " + currentYear + "\nhour: "+ currentHour + "\nminutes: " + currentMinutes);
     //set default channel from this message if it doesn't already exist
