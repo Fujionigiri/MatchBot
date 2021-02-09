@@ -143,7 +143,7 @@ function getCurrentMatches() {
             dateDay = parseInt(games[i][dateKey].substr(2,2));
             dateYear = parseInt(games[i][dateKey].substr(4,4));
         }
-
+        client.channels.cache.get(channelID).send("```Finding matches : " + currentTime + " " + currentWeekDay + ".```");
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
@@ -995,9 +995,11 @@ client.on('message', message => {
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
 
-    //console.log("month: " + day.getUTCMonth() + " day: " + day.getUTCDate() + " year: " + day.getUTCFullYear());
-    //console.log("weekday: " + currentWeekDay + "\nmonth: " + currentMonth + "\nday: " + currentDay
-    //                + "\nyear: " + currentYear + "\nhour: "+ currentHour + "\nminutes: " + currentMinutes);
+
+    var utcTime = "month: " + day.getUTCMonth() + " day: " + day.getUTCDate() + " year: " + day.getUTCFullYear() 
+                    + " hour: " + day.getUTCHours() + " mintues: " + day.getUTCMinutes();
+    var curTime = "weekday: " + currentWeekDay + "\nmonth: " + currentMonth + "\nday: " + currentDay
+                    + "\nyear: " + currentYear + "\nhour: "+ currentHour + "\nminutes: " + currentMinutes;
     //set default channel from this message if it doesn't already exist
     if(config.MAIN_CHANNEL === "none") {
         config.MAIN_CHANNEL = message.channel.id;
@@ -1027,7 +1029,7 @@ client.on('message', message => {
     for(var i = 0; i < admin.length; i++)
     {
         command = Object.keys(admin[i])[0];
-        if(admin[i][command] === call || call === "clearqueues")
+        if(admin[i][command] === call || call === "clearqueues" || call === "gettime")
         {
             adminCommand = i;
             adminFound = true;
@@ -1167,6 +1169,9 @@ client.on('message', message => {
                     clearQueues();
                 else
                     message.channel.send("```diff\n- Invalid password.```");
+                break;
+            case "gettime":
+                message.channel.send("utc: " + utcTime + "\ncurrent: " + curTime);
                 break;
         }
     }
