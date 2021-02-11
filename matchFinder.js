@@ -4,6 +4,8 @@ const Discord = require('discord.js');
 //discord client
 const client = new Discord.Client();
 
+process.env.TZ = "UTC";
+
 //other requireds
 const config = require("./data/config.json");
 const cron = require('node-cron');
@@ -34,8 +36,9 @@ const jSonMaxTeams = 4;
 const jSonWeek = 5;
 const jSonDate = 6;
 const jSonQueue = 7;
-const jSonStart = 8;
-const jSonEnd = 9;
+const jSonQueueEnd = 8;
+const jSonStart = 9;
+const jSonEnd = 10;
 
 //Adds team to requested game queue (example: !overwatch 3 -> adds coaches discord id to matches.json overwatch queue under 3 teams) 
 //if date and time are valid and game exists.
@@ -112,10 +115,14 @@ function getCurrentMatches() {
         const id = Object.keys(games[i])[jSonId];
         const dayKey = Object.keys(games[i])[jSonWeek];
         const dateKey = Object.keys(games[i])[jSonDate];
+        const queueEndTimeKey = Object.keys(games[i])[jSonQueueEnd];    
         const startTimeKey = Object.keys(games[i])[jSonStart];
         const endTimeKey = Object.keys(games[i])[jSonEnd];
         var startHr="";
         var startMin="";
+        var queueEndHr = "";
+        var queueEndMin = "";
+        var queueEndTime = 0;
         var startTime = 0;
         var endHr="";
         var endMin="";
@@ -128,6 +135,11 @@ function getCurrentMatches() {
         var dateMonth="";
         var dateDay="";
         var dateYear="";
+        if(games[i][queueEndTimeKey] != "none") {
+            queueEndHr = games[i][queueEndTimeKey].substr(0,2);
+            queueEndMin = games[i][queueEndTimeKey].substr(2,2);
+            queueEndTime = parseInt(queueEndHr + queueEndMin);
+        }
         if(games[i][startTimeKey] != "none") {
             startHr = games[i][startTimeKey].substr(0,2);
             startMin = games[i][startTimeKey].substr(2,2);
@@ -146,25 +158,27 @@ function getCurrentMatches() {
         //client.channels.cache.get(channelID).send("```Finding matches : " + currentTime + " " + currentWeekDay + ".```");
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
-            (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
-            && games[i][startTimeKey] != "none")
+            (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
         {
-            if(currentTime >= startTime && currentTime <= endTime){
+            if(games[i][queueEndTimeKey] != "none" && (currentTime >= queueEndTime && currentTime < startTime)) {
+                setMatches(games[i][id], participants, completeDate, games, log);
+            }
+            else if (games[i][startTimeKey] != "none" && (currentTime >= startTime && currentTime <= endTime)) {
                 setMatches(games[i][id], participants, completeDate, games, log);
             }
         }
         //if start time hasn't been set the matches are released at noon
         else if((weekday === currentWeekDay ||
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear))
-             && games[i][startTimeKey] === "none")
+             && games[i][startTimeKey] === "none" && games[i][queueEndTimeKey] === "none")
         {
             setMatches(games[i][id], participants, completeDate, games, log);
         }
         //if no date or day of week has been set then adds cron job as specified game start time
-        else if(weekday === "none" && date === "none" && games[i][startTimeKey] != "none") {
+        else if(weekday === "none" && date === "none" && games[i][queueEndTime] != "none") {
             setMatches(games[i][id], participants, completeDate, games, log);
         }
-        else if(weekday === "none" && date === "none" && games[i][startTimeKey] === "none") {
+        else if(weekday === "none" && date === "none" && games[i][queueEndTime] === "none") {
             setMatches(games[i][id], participants, completeDate, games, log);
         }
     }
@@ -467,7 +481,8 @@ function addGame(message, id, name) {
                             + "\", \n\"max teams\": \"" + parseInt("10")
                             + "\", \n\"weekday\": \"" + "none"
                             + "\", \n\"date\": \"" + "none" 
-                            + "\", \n\"queue time\": \"" + "none"
+                            + "\", \n\"queue start\": \"" + "none"
+                            + "\", \n\"queue end\": \"" + "none"
                             + "\", \n\"start time\": \"" + "none" 
                             + "\", \n\"end time\": \"" + "none" + "\"}"));
 
@@ -588,7 +603,7 @@ function addDay(message, id, date) {
     updateJson(message, "games", games, "```diff\n+ " + id + " competition date has been added/updated.```")
 }
 
-function addQueueTime(message, id, queueTime) {
+function addQueueTime(message, id, queueTime, queueEnd) {
     var index = games.findIndex(a=> a.id === id);
     if(index < 0) {
         message.channel.send("```diff\n- Error: id does not exist, check !help for the list of games.```");
@@ -597,6 +612,8 @@ function addQueueTime(message, id, queueTime) {
 
     const queueHr = parseInt(queueTime.substr(0,2));
     const queueMin = parseInt(queueTime.substr(2,2));
+    const queueEndHr = parseInt(queueEnd.substr(0,2));
+    const queueEndMin = parseInt(queueEnd.substr(2,2));
     const startTimeKey = Object.keys(games[index])[jSonStart];
     const startTime = games[index][startTimeKey];
     if(queueTime.length < 4 || queueTime.length > 4 || queueHr < 0 || queueHr > 23 
@@ -604,12 +621,34 @@ function addQueueTime(message, id, queueTime) {
         message.channel.send("```diff\n- Error: Inputted time is not valid, please use a valid time in the format HHMM or none for no time, example: 8:45 = 0845.```");
         return;
     }
-    else if(parseInt(queueTime) > parseInt(startTime)) {
+    else if(queueEnd.length < 4 || queueEnd.length > 4 || queueEndHr < 0 || queueEndHr > 23 
+        || queueEndMin < 0 || queueEndMin > 59 || isNaN(queueEndHr) || isNaN(queueEndMin)) {
+        message.channel.send("```diff\n- Error: Inputted time is not valid, please use a valid time in the format HHMM or none for no time, example: 8:45 = 0845.```");
+        return;
+    }
+    else if(parseInt(queueTime) > parseInt(startTime) || parseInt(queueEnd) > parseInt(startTime)) {
         message.channel.send("```diff\n- Error: Queue time cannot come after start time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
         return;
     }
-    games[index]["queue time"] = queueTime;
-    updateJson(message, "games", games, "```diff\n+ " + id + " competition queue time has been added/updated.```")
+    else if(parseInt(queueTime) > parseInt(queueEnd)) {
+        message.channel.send("```diff\n- Error: Start time cannot come after end time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
+        return;
+    }
+    games[index]["queue start"] = queueTime;
+    games[index]["queue end"] = queueEnd;
+    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
+    {
+        if (err)
+        {
+            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+        else
+        {
+            message.channel.send("```diff\n+ " + id + " queue time has been added/updated.```");
+            scheduleStartTime();
+        }
+    });
 }
 
 //Add start and end times for queue to be available, none can be entered for start, end or both for no restrictions
@@ -625,6 +664,8 @@ function addTime(message, id, start, end) {
     const endMin = parseInt(end.substr(2,2));
     const queueTimeKey = Object.keys(games[index])[jSonQueue];
     const queueTime = games[index][queueTimeKey];
+    const queueEndTimeKey = Object.keys(games[index])[jSonQueueEnd];
+    const queueEndTime = games[index][queueEndTimeKey];
     if(start.length < 4 || end.length < 4 || start.length > 4 || end.length > 4 || startHr < 0 || startHr > 23 
         || endHr < 0 || endHr >23 || startMin < 0 || startMin > 59 || endMin < 0 || endMin > 59 
         || isNaN(startHr) || isNaN(startMin) || isNaN(endHr) || isNaN(endMin)) {
@@ -635,7 +676,7 @@ function addTime(message, id, start, end) {
         message.channel.send("```diff\n- Error: Start time cannot come after end time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
         return;
     }
-    else if(parseInt(queueTime) > parseInt(start)) {
+    else if(parseInt(queueTime) > parseInt(start) || parseInt(queueEndTime) > parseInt(start)) {
         message.channel.send("```diff\n- Error: Start time cannot come before queue time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
         return;
     }
@@ -679,8 +720,13 @@ function printDetails(message, id) {
             output += (date != "none") ? ("\n- < " + key + " > " + date.substr(0,2) + "-" + date.substr(2,2) + "-" + date.substr(4))
                                         : ("\n- < " + key + " > " + date);
         }
-        else if(key === "queue time") {
-            var queueTime = games[index]["queue time"];
+        else if(key === "queue start") {
+            var queueTime = games[index]["queue start"];
+            output += (queueTime != "none") ? ("\n- < " + key + " > " + queueTime.substr(0,2) + ":" + queueTime.substr(2,2))
+                                        : ("\n- < " + key + " > " + queueTime);
+        }
+        else if(key === "queue end") {
+            var queueTime = games[index]["queue end"];
             output += (queueTime != "none") ? ("\n- < " + key + " > " + queueTime.substr(0,2) + ":" + queueTime.substr(2,2))
                                         : ("\n- < " + key + " > " + queueTime);
         }
@@ -769,6 +815,7 @@ function addToQueue(message, id, game, numTeams) {
     const endTimeKey = Object.keys(gameList[game])[jSonEnd];
     const maxTeamsKey = Object.keys(gameList[game])[jSonMaxTeams];
     const queueKey = Object.keys(gameList[game])[jSonQueue];
+    const queueEndKey = Object.keys(gameList[game])[jSonQueueEnd];
     
     var currentTime = (currentMinutes < 10) ? (parseInt(currentHour.toString() + "0" + currentMinutes.toString()))
                                                 : (parseInt(currentHour.toString() + currentMinutes.toString()));
@@ -780,6 +827,7 @@ function addToQueue(message, id, game, numTeams) {
     var dateDay;
     var dateYear;
     var queueTime = (gameList[game][queueKey] != "none") ? (parseInt(gameList[game][queueKey])) : (gameList[game][queueKey]);
+    var queueEndTime = (gameList[game][queueEndKey] != "none") ? (parseInt(gameList[game][queueEndKey])) : (gameList[game][queueEndKey]);
     var startTime = (gameList[game][startTimeKey] != "none") ? (parseInt(gameList[game][startTimeKey])) : (gameList[game][startTimeKey]);
     var endTime = (gameList[game][endTimeKey] != "none") ? (parseInt(gameList[game][endTimeKey])) : (gameList[game][endTimeKey]);
 
@@ -812,17 +860,17 @@ function addToQueue(message, id, game, numTeams) {
     if((weekday === "none" && date === "none") 
         || weekday == currentWeekDay
         || (currentMonth + 1 == dateMonth && currentDay == dateDay && currentYear == dateYear)) {
-        if((currentTime >= queueTime && currentTime <= endTime) 
-            || (queueTime === "none" && currentTime <= endTime) 
-            || (currentTime >= queueTime && endTime === "none")
+        if((currentTime >= queueTime && currentTime <= queueEndTime) 
+            || (currentTime >= startTime && currentTime <= endTime)
+            || (currentTime >= queueTime && queueEndTime === "none")
             || (queueTime === "none" && endTime === "none")) {
                 gameQ(message, gameList[game][id], gameList[game][nameKey], numTeams);
         }
         else {
             var messageTxt = (queueTime != "none" && endTime != "none") ? 
-                ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + " and ends at " + endTime + " current time is " + currentTime + "```") :
+                ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + " and ends at " + queueEndTime + " current time is " + currentTime + "```") :
                 (queueTime != "none") ? ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + "```") :
-                ("```diff\n- Queue time for " + gameName + " ended at " + endTime + "```");
+                ("```diff\n- Queue time for " + gameName + " ended at " + queueEndTime + "```");
             message.channel.send(messageTxt);
             return;
         }
@@ -831,13 +879,13 @@ function addToQueue(message, id, game, numTeams) {
     else
     {
         var messageTxt = (weekday === "none" && queueTime != "none" && endTime != "none") ? ("```diff\n- "+ gameName + " queue is open on " 
-                    + dateMonth + "-" + dateDay + "-" + dateYear + " from " + queueTime + " to " + endTime + "```") :
+                    + dateMonth + "-" + dateDay + "-" + dateYear + " from " + queueTime + " to " + queueEndTime + "```") :
 
                     (weekday === "none" && queueTime === "none" && endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + "```") :
                     
                     (weekday === "none" && queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
-                    + dateMonth + "-" + dateDay + "-" + dateYear + " until " + endTime + "```") :
+                    + dateMonth + "-" + dateDay + "-" + dateYear + " until " + queueEndTime + "```") :
 
                     (weekday === "none" && endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + " starting at " + queueTime + "```") :
@@ -846,13 +894,13 @@ function addToQueue(message, id, game, numTeams) {
                     + getWeekday(weekday.toString()) + "s```"):
 
                     (queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s until " + endTime + "```") :
+                    + getWeekday(weekday.toString()) + "s until " + queueEndTime + "```") :
 
                     (endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + getWeekday(weekday.toString()) + "s starting at " + queueTime + "```"):
 
                     ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s from " + queueTime + " to " + endTime +  "```");
+                    + getWeekday(weekday.toString()) + "s from " + queueTime + " to " + queueEndTime +  "```");
 
         message.channel.send(messageTxt);
         return;
@@ -880,8 +928,8 @@ client.on('ready', (evt) => {
     console.log("Connected");
     games = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/games.json'), 'utf-8'));
     numGames = games.length;
-    let scheduledMessage = new cron.schedule('00 00 05 * * *', () => {
-    // This runs every day at 05:00:00 to set tournament start schedule
+    let scheduledMessage = new cron.schedule('00 00 09 * * *', () => {
+    // This runs every day at 04:00:00 to set tournament start schedule
         clearQueues();
         //send out match notifications at 3pm
         scheduleStartTime();
@@ -896,7 +944,7 @@ function scheduleStartTime() {
         const id = Object.keys(games[i])[jSonId];
         const dayKey = Object.keys(games[i])[jSonWeek];
         const dateKey = Object.keys(games[i])[jSonDate];
-        const startTimeKey = Object.keys(games[i])[jSonStart];
+        const matchTimeKey = Object.keys(games[i])[jSonQueueEnd];
         var startHr="";
         var startMin="";
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
@@ -904,14 +952,14 @@ function scheduleStartTime() {
         var dateMonth="";
         var dateDay="";
         var dateYear="";
-        if(games[i][startTimeKey] != "none") {
+        if(games[i][matchTimeKey] != "none") {
             var sTime = 0;
-            if(parseInt(games[i][startTimeKey].substr(0,2)) > 19) {
-                sTime = (parseInt(games[i][startTimeKey].substr(0,2)) - 19)
+            if(parseInt(games[i][matchTimeKey].substr(0,2)) > 19) {
+                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) - 19)
                 startHr = "0" + sTime.toString();
             }
             else{
-                sTime = (parseInt(games[i][startTimeKey].substr(0,2)) + 5)
+                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) + 5)
                 if(sTime < 10){
                     startHr = "0" + sTime.toString();
                 }
@@ -919,7 +967,7 @@ function scheduleStartTime() {
                     startHr = sTime.toString();
                 }
             }
-            startMin = games[i][startTimeKey].substr(2,2);
+            startMin = games[i][matchTimeKey].substr(2,2);
         }
         if(date != "none") {
             dateMonth = parseInt(games[i][dateKey].substr(0,2));
@@ -930,7 +978,7 @@ function scheduleStartTime() {
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
-            && games[i][startTimeKey] != "none")
+            && games[i][matchTimeKey] != "none")
         {
             var time = '00 ' + startMin + ' ' + startHr + ' * * *';
             cronJobs.push(
@@ -939,14 +987,14 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), undefined, true, "America/New_York"
+                ), undefined, true, "UTC"
             );
             //console.log("Schedule set for " + games[i][id]);
         }
         //if start time hasn't been set the matches are released at noon
         else if((weekday === currentWeekDay ||
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear))
-             && games[i][startTimeKey] === "none")
+             && games[i][matchTimeKey] === "none")
         {
             cronJobs.push(
                 cron.schedule(
@@ -954,11 +1002,11 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), undefined, true, "America/New_York"
+                ), undefined, true, "UTC"
             );
         }
         //if no date or day of week has been set then adds cron job as specified game start time
-        else if(weekday === "none" && date === "none" && games[i][startTimeKey] != "none") {
+        else if(weekday === "none" && date === "none" && games[i][matchTimeKey] != "none") {
             var time = '00 ' + startMin + ' ' + startHr + ' * * *';
             cronJobs.push(
                 cron.schedule(
@@ -966,17 +1014,17 @@ function scheduleStartTime() {
                     () => {
                         getCurrentMatches();
                     }
-                ), undefined, true, "America/New_York"
+                ), undefined, true, "UTC"
             );
         }
-        else if(weekday === "none" && date === "none" && games[i][startTimeKey] === "none") {
+        else if(weekday === "none" && date === "none" && games[i][matchTimeKey] === "none") {
             cronJobs.push(
                 cron.schedule(
                     '00 00 12 * * *',
                     () => {
                         getCurrentMatches();
                     }
-                ), undefined, true, "America/New_York"
+                ), undefined, true, "UTC"
             );
         }
     }
@@ -1050,7 +1098,7 @@ client.on('message', message => {
         }
     }
 
-    if(call === "help") {   //calls to help menu display
+    if(call === "games") {   //calls to help menu display
         helpCommand(message);
     }
     else if (call == "admin") { //checks if user has admin privileges, if does calls to admin menu display
@@ -1167,11 +1215,11 @@ client.on('message', message => {
                 setMaxTeams(message, args.shift().toLowerCase(), args.join(" "));
                 break;
             case "queue":
-                if(args.length < 2) {
+                if(args.length < 3) {
                     message.channel.send("```diff\n- Invalid number of arguments.```");
                     return; 
                 }
-                addQueueTime(message, args.shift().toLowerCase(), args.join(" "));
+                addQueueTime(message, args.shift().toLowerCase(), args.shift(), args.join(" "));
                 break;
             case "clearqueues":
                 if(args.length < 1){
@@ -1184,7 +1232,7 @@ client.on('message', message => {
                     message.channel.send("```diff\n- Invalid password.```");
                 break;
             case "gettime":
-                message.channel.send("utc: " + utcTime + "\ncurrent: " + curTime);
+                message.channel.send("utc: " + day.getHours() + ": " + day.getMinutes() + "\ncurrent: " + curTime);
                 break;
         }
     }
