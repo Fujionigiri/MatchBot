@@ -25,14 +25,14 @@
         "des": "Remove selected coach from gameId queue"
     },
     {
-        "id": "add",
+        "id": "addgame",
         "command": "add {id} {name}",
         "des": "Add game to list, id is the command - no spaces"
     },
 
     {
-        "id": "remove",
-        "command": "remove {id}",
+        "id": "removegame",
+        "command": "removegame {id}",
         "des": "Remove game by id from list"
     },
 

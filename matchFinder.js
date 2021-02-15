@@ -13,7 +13,8 @@ var cronJobs = [];
 var fs = require("fs");
 var path = require("path");
 const gameJson = require("./data/games.json");
-const admin = require("./data/admin.json");
+const admin = require("./admin.json");
+const menu = require("./menu.json")
 const matches = require("./data/matches.json");
 const teams = require("./data/teams.json");
 const matchLog = require("./data/matchLog.json");
@@ -46,7 +47,7 @@ function gameQ(message, call, name, numTeams)
 {
     //console.log("directory: " + __dirname);
     var gamePos = 0;
-    var teamNumbers = "teams " + numTeams;
+    var teamNumbers = numTeams + " teams";
     for(var j = 0; j < participants.length; j++)
     {
         if(participants[j].id == call)
@@ -57,10 +58,12 @@ function gameQ(message, call, name, numTeams)
                 const key = Object.keys(participants[gamePos])[i];
                 
                 var teams = participants[gamePos][key];
+
                 for(var k = 0; k < Object.keys(teams).length; k++)
                 {
                     const key = Object.keys(teams)[k];
-                    if(teams[key] == message.member.user.id)
+                    //console.log("key: " + key + "  teams[key]: " + teams[key]);
+                    if(key == message.member.user.id)
                     {
                         message.channel.send("```diff\n- Your team is already queued.```");
                         return;
@@ -70,13 +73,14 @@ function gameQ(message, call, name, numTeams)
         }
     }
     //Check if team has competed before if not add to teams json
-    
+    var server = client.guilds.cache.get(message.guild.id);
+
     var value = message.member.user.id;
     if(participants[gamePos][teamNumbers] == null) {
         participants[gamePos][teamNumbers] = JSON.parse("{}");
     }
     
-    participants[gamePos][teamNumbers][value] = message.member.user.id;
+    participants[gamePos][teamNumbers][value] = server.members.cache.get(value).displayName;
     fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
     {
         if (err)
@@ -240,11 +244,13 @@ function setMatches(gameId, participants, completeDate, games, log) {
             console.log("matching teams " + key);
             var team1Pos = Math.floor(Math.random() * Object.keys(participants[gamePos][key]).length);
             let team1 = Object.keys(participants[gamePos][key])[team1Pos];
+            let team1Name = participants[gamePos][key][team1];
             delete participants[gamePos][key][team1];
             var team2Pos = Math.floor(Math.random() * Object.keys(teams).length)
             let team2 = Object.keys(participants[gamePos][key])[team2Pos];
+            let team2Name = participants[gamePos][key][team2]
             delete participants[gamePos][key][team2];
-            client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up match for " + gameId + ".");
+            client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameId + ".");
             if(log[gamePos][completeDate] == null) {
                 log[gamePos][completeDate] = JSON.parse("{}");
             }
@@ -253,7 +259,7 @@ function setMatches(gameId, participants, completeDate, games, log) {
             }
             var matchSets = log[gameLogPos][completeDate][key];
 
-            log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1 + " " + team2;
+            log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
 }
@@ -292,21 +298,28 @@ function clearQueues() {
 function helpCommand(message)
 {
     var output = "```md";
-    output += ("\n# Queue commands");
-
+    
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
+        const nameKey = Object.keys(games[i])[jSonName];
         const des = Object.keys(games[i])[jSonDes];
         const channelID = Object.keys(games[i])[jSonChannel];
         if(message.channel.id == config.MAIN_CHANNEL || message.channel.id == games[i][channelID])
-            output += ("\n- <  " + prefix + games[i][id] + " #  > " + games[i][des]);
+            output += ("\n**" + games[i][nameKey] + " Queue**\n" + games[i][des]);
     }
+    
+    output += ("\n\n# Menu commands");
     
     if(games.length == 0) {
         output += "\nNo games have been added yet";
     }
-
+    for(var i = 0; i < menu.length; i++)
+    {
+        const id = Object.keys(menu[i])[1];
+        const des = Object.keys(menu[i])[2];
+        output += ("\n- < " + prefix + menu[i][id] + " > " + menu[i][des]);
+    }
     output += ("\n# Access Admin menu -> !admin");
     output += "\n```";
     message.channel.send(output);
@@ -375,8 +388,8 @@ function outputMatches(message, id, date) {
         {
             var matchKey = Object.keys(log[gameLogPos][date][teamsKey])[j];
             var teams = log[gameLogPos][date][teamsKey][matchKey];
-            team1 = teams.substr(0, teams.indexOf(" "));
-            team2 = teams.substr(teams.indexOf(" ") + 1);
+            team1 = teams.substr(0, teams.indexOf(","));
+            team2 = teams.substr(teams.indexOf(",") + 1);
             team1 = (client.users.cache.get(team1) == null) ? team1 : (client.users.cache.get(team1).username);
             team2 = (client.users.cache.get(team2) == null) ? team2 : (client.users.cache.get(team2).username);
             output += "\n- < " + team1 + " > vs < " + team2 + " >";
@@ -401,7 +414,9 @@ function listTeams(message, id) {
     }
     var output = "```md";
     output += ("\n# Matches for " + id);
-    
+    var server = client.guilds.cache.get(message.guild.id);
+    //console.log(server.members.cache.get("643565925185880074").displayName); 
+    //console.log(client.users.cache.get("793925291931861003").username);
     for(var i = 0; i < Object.keys(participants[gamePos]).length; i++)
     {
         var teamsKey = Object.keys(participants[gamePos])[i];
@@ -411,7 +426,8 @@ function listTeams(message, id) {
             {
                 var matchKey = Object.keys(participants[gamePos][teamsKey])[j];
                 var team = participants[gamePos][teamsKey][matchKey];
-                team = (client.users.cache.get(team) == null) ? team : (client.users.cache.get(team).username);
+                
+                //team = (client.users.cache.get(team) == null) ? team : (client.users.cache.get(team).username);
                 output += "\n- < " + team + " >";
             }
         }
@@ -864,7 +880,7 @@ function addToQueue(message, id, game, numTeams) {
             || (currentTime >= startTime && currentTime <= endTime)
             || (currentTime >= queueTime && queueEndTime === "none")
             || (queueTime === "none" && endTime === "none")) {
-                gameQ(message, gameList[game][id], gameList[game][nameKey], numTeams);
+                gameQ(message, id, gameList[game][nameKey], numTeams);
         }
         else {
             var messageTxt = (queueTime != "none" && endTime != "none") ? 
@@ -1045,6 +1061,8 @@ client.on('message', message => {
     const args = message.content.slice(prefix.length).split(/ +/);
     const call = args.shift().toLowerCase();
     var id;
+    var channelID;
+    var gameSpot = -1;
     var command;
     let found = false;
     let adminFound = false;
@@ -1074,11 +1092,23 @@ client.on('message', message => {
         });
     }
 
-    //Checks that game id exits (for queue commands)
+    //Gets game id for channel commands
+    for(var i = 0; i < games.length; i++)
+    {
+        channelID = Object.keys(games[i])[jSonChannel];
+        if(games[i][channelID] === message.channel.id)
+        {
+            gameSpot = i;
+            found = true;
+            break;
+        }
+    }
+
+    //Checks that game id exits (for admin commands)
     for(var i = 0; i < games.length; i++)
     {
         id = Object.keys(games[i])[jSonId];
-        if(games[i][id].toLowerCase() === call)
+        if(games[i][id].toLowerCase() === call.toLowerCase())
         {
             game = i;
             found = true;
@@ -1097,8 +1127,8 @@ client.on('message', message => {
             break;
         }
     }
-
-    if(call === "games") {   //calls to help menu display
+    
+    if(call === "menu") {   //calls to help menu display
         helpCommand(message);
     }
     else if (call == "admin") { //checks if user has admin privileges, if does calls to admin menu display
@@ -1109,7 +1139,7 @@ client.on('message', message => {
         }
         adminMenu(message);
     }
-    else if(adminFound) { //checks if user has admin privileges, if does processes command
+    else if(adminFound && args.length > 0) { //checks if user has admin privileges, if does processes command
         if (!hasPermission(message, "admin"))
         {
             message.channel.send("```diff\n- You must be an admin to use admin commands.```");
@@ -1151,14 +1181,14 @@ client.on('message', message => {
                 }
                 removeTeam(message, args.shift().toLowerCase(), args.join(" "));
                 break;
-            case "add":
+            case "addgame":
                 if(args.length < 2){
                     message.channel.send("```diff\n- Invalid number of arguments.```");
                     return; 
                 }
                 addGame(message, args.shift().toLowerCase(), args.join(" "));
                 break;
-            case "remove":
+            case "removegame":
                 if(args.length < 1){
                     message.channel.send("```diff\n- Invalid number of arguments.```");
                     return; 
@@ -1232,7 +1262,15 @@ client.on('message', message => {
                     message.channel.send("```diff\n- Invalid password.```");
                 break;
             case "gettime":
-                message.channel.send("utc: " + day.getHours() + ": " + day.getMinutes() + "\ncurrent: " + curTime);
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                if(args.join(" ") === "admin"){
+                    message.channel.send("utc: " + day.getHours() + ": " + day.getMinutes() + "\ncurrent: " + curTime);
+                }
+                else
+                    message.channel.send("```diff\n- Invalid password.```");
                 break;
         }
     }
@@ -1242,11 +1280,39 @@ client.on('message', message => {
             message.channel.send("```diff\n- You must be a School Coach to join a queue.```");
             return;
         }
-        else if(args.length < 1){
-            message.channel.send("```diff\n- Invalid number of arguments. If you are only adding one team please enter 1 after the game name.```");
-            return; 
+        else if(call === "join") {
+            if(args.length == 1 && gameSpot != -1){
+                //console.log(gameSpot);
+                addToQueue(message, games[gameSpot][id], gameSpot, args.shift().toLowerCase());
+            }
+            else{
+                message.channel.send("```diff\n- Invalid number of arguments. If you are only adding one team please enter 1 after join, ex: !join 1.```");
+                return; 
+            }
         }
-        addToQueue(message, id, game, args.shift().toLowerCase());
+        else if(call === "list" && args.length < 1) {
+            if(args.length < 1 && gameSpot != -1){
+                listTeams(message, games[gameSpot][id]);
+            }
+            else {
+                message.channel.send("```diff\n- There is not an available list for this game.```");
+            }
+        }
+        else if(call === "remove" && args.length < 1) {
+            if(args.length < 1 && gameSpot != -1){
+                removeTeam(message, games[gameSpot][id], message.member.user.id);        
+            }
+            else {
+                message.channel.send("```diff\n- There is not an available queue for this game.```");
+            }
+        }
+        else if(args.length == 1 && config.MAIN_CHANNEL == message.channel.id && hasPermission(message, "admin")){
+            addToQueue(message, games[game][id], game, args.shift().toLowerCase());
+        }
+        else { //Entered command was invalid
+            message.channel.send("```diff\n- Invalid Input ```");
+            return;
+        }
     }
     else { //Entered command was invalid
         message.channel.send("```diff\n- Invalid Input ```");

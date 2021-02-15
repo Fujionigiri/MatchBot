@@ -1,0 +1,17 @@
+[
+    {
+        "id": "join",
+        "command": "join #",
+        "des": "Join game when queue is open, ex: !join 3  -> Adds 3 teams to queue"
+    },
+    {
+        "id": "list",
+        "command": "list",
+        "des": "Lists all teams currently in open game queue"
+    },
+    {
+        "id": "remove",
+        "command": "remove",
+        "des": "Removes your team from the game queue."
+    }
+]
