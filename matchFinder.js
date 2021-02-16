@@ -47,7 +47,7 @@ function gameQ(message, call, name, numTeams)
 {
     //console.log("directory: " + __dirname);
     var gamePos = 0;
-    var teamNumbers = numTeams + " teams";
+    var teamNumbers = numTeams + " team(s)";
     for(var j = 0; j < participants.length; j++)
     {
         if(participants[j].id == call)
@@ -209,6 +209,7 @@ function getCurrentMatches() {
 function setMatches(gameId, participants, completeDate, games, log) {
     var gamePos = 0;
     var channel = "";
+    var gameName = "";
     for(var j = 0; j < participants.length; j++)
     {
         if(participants[j].id == gameId)
@@ -218,6 +219,8 @@ function setMatches(gameId, participants, completeDate, games, log) {
                 if(games[k].id == gameId){
                     var channelKey = Object.keys(games[gamePos])[jSonChannel];
                     channel = (games[k][channelKey] != "none") ? (games[k][channelKey]) : config.MAIN_CHANNEL;
+                    var nameKey = Object.keys(games[k])[jSonName];
+                    gameName = games[k][nameKey];
                 }
             }
             gamePos = j;
@@ -241,7 +244,7 @@ function setMatches(gameId, participants, completeDate, games, log) {
         
         while (Object.keys(participants[gamePos][key]).length > 1)
         {
-            console.log("matching teams " + key);
+            //console.log("matching teams " + key);
             var team1Pos = Math.floor(Math.random() * Object.keys(participants[gamePos][key]).length);
             let team1 = Object.keys(participants[gamePos][key])[team1Pos];
             let team1Name = participants[gamePos][key][team1];
@@ -250,7 +253,7 @@ function setMatches(gameId, participants, completeDate, games, log) {
             let team2 = Object.keys(participants[gamePos][key])[team2Pos];
             let team2Name = participants[gamePos][key][team2]
             delete participants[gamePos][key][team2];
-            client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameId + ".");
+            client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameName + ".");
             if(log[gamePos][completeDate] == null) {
                 log[gamePos][completeDate] = JSON.parse("{}");
             }
@@ -513,7 +516,7 @@ function addGame(message, id, name) {
         else
         {
             //create section in matches.json for new game
-            matches.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\",\n\"teams 1\" : {}\n}"));
+            matches.push(JSON.parse("{\"" + "id" + "\":\"" + id + "\",\n\"1 team(s)\" : {}\n}"));
             updateJson(message, "matches", matches, "none");
             var gamePos = -1;
             for(var j = 0; j < log.length; j++)
@@ -996,6 +999,7 @@ function scheduleStartTime() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
             && games[i][matchTimeKey] != "none")
         {
+            //console.log("Setting cron");
             var time = '00 ' + startMin + ' ' + startHr + ' * * *';
             cronJobs.push(
                 cron.schedule(
