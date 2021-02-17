@@ -48,24 +48,24 @@ function gameQ(message, call, name, numTeams)
     //console.log("directory: " + __dirname);
     var gamePos = 0;
     var teamNumbers = numTeams + " team(s)";
-    message.channel.send("teamNumbers: " + teamNumbers);
+    //message.channel.send("teamNumbers: " + teamNumbers);
     for(var j = 0; j < participants.length; j++)
     {
-        message.channel.send("call: " + call + " participants: " + participants);
+        //message.channel.send("call: " + call + " participants: " + participants);
         if(participants[j].id == call)
         {
             gamePos = j;
-            message.channel.send("participants: " + participants[j].id + " gamePos: " + gamePos);
+            //message.channel.send("participants: " + participants[j].id + " gamePos: " + gamePos);
             for(var i = 0; i < Object.keys(participants[j]).length; i++)
             {
                 const key = Object.keys(participants[gamePos])[i];
-                message.channel.send("key: " + key);
+                //message.channel.send("key: " + key);
                 var teams = participants[gamePos][key];
-                message.channel.send("teams: " + teams);
+                //message.channel.send("teams: " + teams);
                 for(var k = 0; k < Object.keys(teams).length; k++)
                 {
                     const key = Object.keys(teams)[k];
-                    message.channel.send("key: " + key + "  teams[key]: " + teams[key]);
+                    //message.channel.send("key: " + key + "  teams[key]: " + teams[key]);
                     //console.log("key: " + key + "  teams[key]: " + teams[key]);
                     if(key == message.member.user.id)
                     {
@@ -163,7 +163,7 @@ function getCurrentMatches() {
             dateDay = parseInt(games[i][dateKey].substr(2,2));
             dateYear = parseInt(games[i][dateKey].substr(4,4));
         }
-        client.channels.cache.get(channelID).send("```Finding matches : " + currentTime + " " + currentWeekDay + ".```");
+        //client.channels.cache.get(channelID).send("```Finding matches : " + currentTime + " " + currentWeekDay + ".```");
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
