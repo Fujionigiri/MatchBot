@@ -62,6 +62,7 @@ function gameQ(message, call, name, numTeams)
                 for(var k = 0; k < Object.keys(teams).length; k++)
                 {
                     const key = Object.keys(teams)[k];
+                    message.channel.send("key: " + key + "  teams[key]: " + teams[key]);
                     //console.log("key: " + key + "  teams[key]: " + teams[key]);
                     if(key == message.member.user.id)
                     {
