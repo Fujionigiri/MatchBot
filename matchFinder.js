@@ -159,7 +159,7 @@ function getCurrentMatches() {
             dateDay = parseInt(games[i][dateKey].substr(2,2));
             dateYear = parseInt(games[i][dateKey].substr(4,4));
         }
-        //client.channels.cache.get(channelID).send("```Finding matches : " + currentTime + " " + currentWeekDay + ".```");
+        client.channels.cache.get(channelID).send("```Finding matches : " + currentTime + " " + currentWeekDay + ".```");
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
