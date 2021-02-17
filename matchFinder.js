@@ -51,10 +51,11 @@ function gameQ(message, call, name, numTeams)
     message.channel.send("teamNumbers: " + teamNumbers);
     for(var j = 0; j < participants.length; j++)
     {
+        message.channel.send("call: " + call + " participants: " + participants);
         if(participants[j].id == call)
         {
             gamePos = j;
-            message.channel.send("call: " + call + " participants: " + participants[j].id + " gamePos: " + gamePos);
+            message.channel.send("participants: " + participants[j].id + " gamePos: " + gamePos);
             for(var i = 0; i < Object.keys(participants[j]).length; i++)
             {
                 const key = Object.keys(participants[gamePos])[i];
