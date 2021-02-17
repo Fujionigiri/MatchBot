@@ -47,7 +47,7 @@ function gameQ(message, call, name, numTeams)
 {
     //console.log("directory: " + __dirname);
     var gamePos = 0;
-    var teamNumbers = numTeams + " team(s)";
+    var teamNumbers = "teams " + numTeams;
     //message.channel.send("teamNumbers: " + teamNumbers);
     for(var j = 0; j < participants.length; j++)
     {
