@@ -47,7 +47,7 @@ function gameQ(message, call, name, numTeams)
 {
     //console.log("directory: " + __dirname);
     var gamePos = 0;
-    var teamNumbers = "teams " + numTeams;
+    var teamNumbers = numTeams + " team(s)";
     for(var j = 0; j < participants.length; j++)
     {
         if(participants[j].id == call)
@@ -257,6 +257,7 @@ function setMatches(gameId, participants, completeDate, games, log) {
             if(log[gamePos][completeDate][key] == null) {
                 log[gamePos][completeDate][key] = JSON.parse("{}");
             }
+            client.channels.cache.get(channel).send("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
             //var matchSets = log[gameLogPos][completeDate][key];
 
             //log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
