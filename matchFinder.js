@@ -252,6 +252,7 @@ function setMatches(gameId, participants, completeDate, games, log) {
             var team2Pos = Math.floor(Math.random() * Object.keys(teams).length)
             let team2 = Object.keys(participants[gamePos][key])[team2Pos];
             let team2Name = participants[gamePos][key][team2]
+            client.channels.cache.get(chennel).send("participants: " + participants[gamePos][key][team2] + " key: " + key);
             delete participants[gamePos][key][team2];
             client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameName + ".");
             if(log[gamePos][completeDate] == null) {
