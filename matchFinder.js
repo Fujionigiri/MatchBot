@@ -227,7 +227,7 @@ function setMatches(gameId, participants, completeDate, games, log) {
             break;
         }
     }
-    client.channels.cache.get(channel).send("setting matches");
+    //client.channels.cache.get(channel).send("setting matches");
     var gameLogPos = 0;
     for(var j = 0; j < log.length; j++)
     {
@@ -249,12 +249,12 @@ function setMatches(gameId, participants, completeDate, games, log) {
             var team1Pos = Math.floor(Math.random() * Object.keys(participants[gamePos][key]).length);
             let team1 = Object.keys(participants[gamePos][key])[team1Pos];
             let team1Name = participants[gamePos][key][team1];
-            client.channels.cache.get(channel).send("participants: " + participants[gamePos][key][team1] + " key: " + key);
+            //client.channels.cache.get(channel).send("participants: " + participants[gamePos][key][team1] + " key: " + key);
             delete participants[gamePos][key][team1];
             var team2Pos = Math.floor(Math.random() * Object.keys(teams).length)
             let team2 = Object.keys(participants[gamePos][key])[team2Pos];
             let team2Name = participants[gamePos][key][team2]
-            client.channels.cache.get(channel).send("participants: " + participants[gamePos][key][team2] + " key: " + key);
+            //client.channels.cache.get(channel).send("participants: " + participants[gamePos][key][team2] + " key: " + key);
             delete participants[gamePos][key][team2];
             client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameName + ".");
             if(log[gamePos][completeDate] == null) {
