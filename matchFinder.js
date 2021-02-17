@@ -48,6 +48,7 @@ function gameQ(message, call, name, numTeams)
     //console.log("directory: " + __dirname);
     var gamePos = 0;
     var teamNumbers = numTeams + " team(s)";
+    message.channel.send("teamNumbers: " + teamNumbers);
     for(var j = 0; j < participants.length; j++)
     {
         if(participants[j].id == call)
@@ -58,7 +59,7 @@ function gameQ(message, call, name, numTeams)
                 const key = Object.keys(participants[gamePos])[i];
                 
                 var teams = participants[gamePos][key];
-
+                message.channel.send("teams: " + teams);
                 for(var k = 0; k < Object.keys(teams).length; k++)
                 {
                     const key = Object.keys(teams)[k];
