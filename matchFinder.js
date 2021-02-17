@@ -209,8 +209,10 @@ function setMatches(gameId, participants, completeDate, games, log) {
     var gameName = "";
     for(var j = 0; j < participants.length; j++)
     {
+        //console.log("gameid: " + gameId);
         if(participants[j].id == gameId)
         {
+            //console.log("gameid: " + gameId);
             for(var k = 0; k < games.length; k++)
             {
                 if(games[k].id == gameId){
@@ -250,19 +252,37 @@ function setMatches(gameId, participants, completeDate, games, log) {
             let team2 = Object.keys(participants[gamePos][key])[team2Pos];
             let team2Name = participants[gamePos][key][team2]
             delete participants[gamePos][key][team2];
+            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
             client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameName + ".");
-            if(log[gamePos][completeDate] == null) {
-                log[gamePos][completeDate] = JSON.parse("{}");
+            if(log[gameLogPos][completeDate] == null) {
+                log[gameLogPos][completeDate] = JSON.parse("{}");
             }
-            if(log[gamePos][completeDate][key] == null) {
-                log[gamePos][completeDate][key] = JSON.parse("{}");
+            if(log[gameLogPos][completeDate][key] == null) {
+                log[gameLogPos][completeDate][key] = JSON.parse("{}");
             }
-            client.channels.cache.get(channel).send("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
-            //var matchSets = log[gameLogPos][completeDate][key];
+            //client.channels.cache.get(channel).send("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+            var matchSets = log[gameLogPos][completeDate][key];
 
-            //log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
+            log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
+}
+
+//Clear all the logs
+function clearLogs(message) {
+    var log = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matchLog.json'), 'utf-8'));
+    log = [];
+    fs.writeFile(path.join(__dirname + '/data/matchLog.json'), JSON.stringify(log, null, 4), (err) =>
+    {
+        if (err)
+        {
+            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+        else {
+            message.channel.send("```diff\n- Queues cleared.```");
+        }
+    });
 }
 
 //Clears all queues when called to
@@ -1122,7 +1142,7 @@ client.on('message', message => {
     for(var i = 0; i < admin.length; i++)
     {
         command = Object.keys(admin[i])[0];
-        if(admin[i][command] === call || call === "clearqueues" || call === "gettime")
+        if(admin[i][command] === call || call === "clearqueues" || call === "gettime" || call === "clearlogs")
         {
             adminCommand = i;
             adminFound = true;
@@ -1270,6 +1290,17 @@ client.on('message', message => {
                 }
                 if(args.join(" ") === "admin"){
                     message.channel.send("utc: " + day.getHours() + ": " + day.getMinutes() + "\ncurrent: " + curTime);
+                }
+                else
+                    message.channel.send("```diff\n- Invalid password.```");
+                break;
+            case "clearlogs":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                if(args.join(" ") === "admin"){
+                    clearLogs(message);
                 }
                 else
                     message.channel.send("```diff\n- Invalid password.```");
