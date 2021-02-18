@@ -15,6 +15,11 @@
         "des": "Outputs matches from selected date, ex: 02072021"
     },
     {
+        "id": "team",
+        "command": "team {coachId}",
+        "des": "Outputs specified coaches match log"
+    },
+    {
         "id": "list",
         "command": "list {id}",
         "des": "Outputs all teams in selected game queue"

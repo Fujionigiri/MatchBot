@@ -70,7 +70,7 @@ function gameQ(message, call, name, numTeams)
             }
         }
     }
-    //Check if team has competed before if not add to teams json
+
     var server = client.guilds.cache.get(message.guild.id);
 
     var value = message.member.user.id;
@@ -79,6 +79,9 @@ function gameQ(message, call, name, numTeams)
     }
     
     participants[gamePos][teamNumbers][value] = server.members.cache.get(value).displayName;
+    //Check if team has competed before if not add to teams json
+    addTeamInfo(message, message.member.user.id, server.members.cache.get(value).displayName, call)
+
     fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
     {
         if (err)
@@ -100,6 +103,8 @@ function getCurrentMatches() {
     participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
 
     var log = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matchLog.json'), 'utf-8'));
+    var teamInfoLog = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/teams.json'), 'utf-8'));
+
     var completeDate = (currentMonth < 10) ? (currentDay < 10 ? "0" + currentMonth.toString() + "0" + currentDay.toString() + currentYear.toString()
                                                                 : "0" + currentMonth.toString() + currentDay.toString() + currentYear.toString())
                                                                 : currentMonth.toString() + currentDay.toLowerCase() + currentYear.toString();
@@ -162,10 +167,10 @@ function getCurrentMatches() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
         {
             if(games[i][queueEndTimeKey] != "none" && (currentTime >= queueEndTime && currentTime < startTime)) {
-                setMatches(games[i][id], participants, completeDate, games, log);
+                setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
             }
             else if (games[i][startTimeKey] != "none" && (currentTime >= startTime && currentTime <= endTime)) {
-                setMatches(games[i][id], participants, completeDate, games, log);
+                setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
             }
         }
         //if start time hasn't been set the matches are released at noon
@@ -173,14 +178,14 @@ function getCurrentMatches() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear))
              && games[i][startTimeKey] === "none" && games[i][queueEndTimeKey] === "none")
         {
-            setMatches(games[i][id], participants, completeDate, games, log);
+            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
         }
         //if no date or day of week has been set then adds cron job as specified game start time
         else if(weekday === "none" && date === "none" && games[i][queueEndTime] != "none") {
-            setMatches(games[i][id], participants, completeDate, games, log);
+            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
         }
         else if(weekday === "none" && date === "none" && games[i][queueEndTime] === "none") {
-            setMatches(games[i][id], participants, completeDate, games, log);
+            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
         }
     }
     fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
@@ -200,10 +205,19 @@ function getCurrentMatches() {
             console.log(err);
         }
     });
+
+    fs.writeFile(path.join(__dirname + '/data/teams.json'), JSON.stringify(teamInfoLog, null, 4), (err) =>
+    {
+        if (err)
+        {
+            client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+    });
 }
 
 //Send out match notifications
-function setMatches(gameId, participants, completeDate, games, log) {
+function setMatches(gameId, participants, completeDate, games, log, teamInfoLog) {
     var gamePos = 0;
     var channel = "";
     var gameName = "";
@@ -252,6 +266,49 @@ function setMatches(gameId, participants, completeDate, games, log) {
             let team2 = Object.keys(participants[gamePos][key])[team2Pos];
             let team2Name = participants[gamePos][key][team2]
             delete participants[gamePos][key][team2];
+
+            var team1InfoPos = 0;
+            var team2InfoPos = 0;
+            var game1Pos = -1;
+            var game2Pos = -1;
+            for(var g = 0; g < teamInfoLog.length; g++)
+            {
+                if(teamInfoLog[g].id == team1){
+                    team1InfoPos = g;
+                }
+                else if(teamInfoLog[g].id == team2){
+                    team2InfoPos = g;
+                }
+            }
+
+            if(teamInfoLog[team1InfoPos][gameId] == null){
+                teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
+            }
+            if(teamInfoLog[team2InfoPos][gameId] == null){
+                teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
+            }
+            
+            for(var g = 0; g < Object.keys(teamInfoLog[team1InfoPos]).length; g++)
+            {
+                if(Object.keys(teamInfoLog[team1InfoPos])[g] === gameId){
+                    game1Pos = g;
+                    break;
+                }
+            }
+
+            for(var g = 0; g < Object.keys(teamInfoLog[team2InfoPos]).length; g++)
+            {
+                if(Object.keys(teamInfoLog[team2InfoPos])[g] === gameId){
+                    game2Pos = g;
+                    break;
+                }
+            }
+           
+            team1Sets = teamInfoLog[team1InfoPos][gameId];
+            team2Sets = teamInfoLog[team2InfoPos][gameId];
+            teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
+            teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key;
+
             //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
             client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameName + ".");
             if(log[gameLogPos][completeDate] == null) {
@@ -264,6 +321,80 @@ function setMatches(gameId, participants, completeDate, games, log) {
             var matchSets = log[gameLogPos][completeDate][key];
 
             log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
+        }
+    }
+    //go back through and match teams with consecutive # of teams, ex: 4 teams vs 3 teams
+    for(var i = Object.keys(participants[gamePos]).length - 1; i > 1; i--)
+    {
+        const key = Object.keys(participants[gamePos])[i];
+        const key2 = Object.keys(participants[gamePos])[i-1];
+        var teams = participants[gamePos][key];
+        var teams2 = participants[gamePos][key2];
+        //console.log(teams + " " + teams2);
+        if(Object.keys(participants[gamePos][key]).length > 0 && Object.keys(participants[gamePos][key2]).length > 0){
+            //console.log("matching teams " + key);
+            let team1 = Object.keys(participants[gamePos][key])[0];
+            let team1Name = participants[gamePos][key][team1];
+            let team2 = Object.keys(participants[gamePos][key2])[0];
+            let team2Name = participants[gamePos][key2][team2]
+
+            var team1InfoPos = 0;
+            var team2InfoPos = 0;
+            var game1Pos = -1;
+            var game2Pos = -1;
+            for(var g = 0; g < teamInfoLog.length; g++)
+            {
+                if(teamInfoLog[g].id == team1){
+                    team1InfoPos = g;
+                }
+                else if(teamInfoLog[g].id == team2){
+                    team2InfoPos = g;
+                }
+            }
+
+            if(teamInfoLog[team1InfoPos][gameId] == null){
+                teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
+            }
+            if(teamInfoLog[team2InfoPos][gameId] == null){
+                teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
+            }
+            
+            for(var g = 0; g < Object.keys(teamInfoLog[team1InfoPos]).length; g++)
+            {
+                if(Object.keys(teamInfoLog[team1InfoPos])[g] === gameId){
+                    game1Pos = g;
+                    break;
+                }
+            }
+
+            for(var g = 0; g < Object.keys(teamInfoLog[team2InfoPos]).length; g++)
+            {
+                if(Object.keys(teamInfoLog[team2InfoPos])[g] === gameId){
+                    game2Pos = g;
+                    break;
+                }
+            }
+           
+            team1Sets = teamInfoLog[team1InfoPos][gameId];
+            team2Sets = teamInfoLog[team2InfoPos][gameId];
+            teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
+            teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key; 
+
+            delete participants[gamePos][key][team1];
+            delete participants[gamePos][key2][team2];
+
+            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+            client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key2 + " for " + gameName + ".");
+            if(log[gameLogPos][completeDate] == null) {
+                log[gameLogPos][completeDate] = JSON.parse("{}");
+            }
+            if(log[gameLogPos][completeDate][key2] == null) {
+                log[gameLogPos][completeDate][key2] = JSON.parse("{}");
+            }
+            //client.channels.cache.get(channel).send("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+            var matchSets = log[gameLogPos][completeDate][key2];
+
+            log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
 }
@@ -280,7 +411,24 @@ function clearLogs(message) {
             console.log(err);
         }
         else {
-            message.channel.send("```diff\n- Queues cleared.```");
+            message.channel.send("```diff\n- Logs cleared.```");
+        }
+    });
+}
+
+//Clear all the logs
+function clearteams(message) {
+    var teamInfoLog = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/teams.json'), 'utf-8'));
+    teamInfoLog = [];
+    fs.writeFile(path.join(__dirname + '/data/teams.json'), JSON.stringify(teamInfoLog, null, 4), (err) =>
+    {
+        if (err)
+        {
+            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+        else {
+            message.channel.send("```diff\n- Teams cleared.```");
         }
     });
 }
@@ -302,7 +450,7 @@ function clearQueues() {
         }
     }
     var channelID = config.MAIN_CHANNEL;
-    fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(matches, null, 4), (err) =>
+    fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
     {
         if (err)
         {
@@ -381,6 +529,41 @@ function addRole(message, role){
 function addDefault(message, channelID){
     config.MAIN_CHANNEL = channelID;
     updateJson(message, "config", config, "```diff\n+ Default channel has been updated.```");
+}
+
+//outputs log info for each team
+function outputTeamLog(message, coachId){
+    var teamInfoLog = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/teams.json'), 'utf-8'));
+    teamLogPos = -1;
+    var coachName = "";
+    for(var j = 0; j < teamInfoLog.length; j++)
+    {
+        if(teamInfoLog[j].id == coachId)
+        {
+            teamLogPos = j;
+            coachName = teamInfoLog[j].name;
+        }
+    }
+    if(teamLogPos == -1){
+        message.channel.send("```diff\n- " + coachName + " team has not competed in any friendly matches.```");
+        return;
+    }
+    var output = "```md";
+    output += ("\n# Team info for " + coachName);
+    
+    for(var i = 2; i < Object.keys(teamInfoLog[teamLogPos]).length; i++)
+    {
+        var gamesKey = Object.keys(teamInfoLog[teamLogPos])[i];
+        output += "\n# " + gamesKey;
+        for(var j = 0; j < Object.keys(teamInfoLog[teamLogPos][gamesKey]).length; j++)
+        {
+            var matchKey = Object.keys(teamInfoLog[teamLogPos][gamesKey])[j];
+            var teams = teamInfoLog[teamLogPos][gamesKey][matchKey];
+            output += "\n- < " + matchKey + " > vs < " + teams + " >";
+        }
+    }
+    output += "\n```";
+    message.channel.send(output);
 }
 
 //Outputs the matches on selected date from the matchLog
@@ -839,6 +1022,41 @@ function hasPermission(message, role)
     return false;
 }
 
+//Adds team to teams array for logging team info
+function addTeamInfo(message, coachId, name, gameId) {
+    var teamInfoLog = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/teams.json'), 'utf-8'));
+
+    //checks to see if game already exists (by id)
+    for(var i = 0; i < teamInfoLog.length; i++)
+    {
+        const idKey = Object.keys(teamInfoLog[i])[0];
+        if(teamInfoLog[i][idKey] == coachId)
+        {
+            return;
+        }
+    }
+    console.log("name: " + name + " id: " + coachId);
+    //if game doesn't exist create a file in games.json
+    teamInfoLog.push(JSON.parse("{\"" + "id" + "\":\"" + coachId 
+                            +"\", \n\"name\": \"" + name 
+                            + "\", \n\"" + gameId + "\": " + "{}"
+                            + " }"));
+
+    //update games.json with new games array file
+    fs.writeFile(path.join(__dirname + '/data/teams.json'), JSON.stringify(teamInfoLog, null, 4), (err) =>
+    {
+        if (err)
+        {
+            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+        else
+        {
+            console.log("Team log info added");
+        }
+    });
+}
+
 //add team to queue if the time/date/max teams conditions are met
 function addToQueue(message, id, game, numTeams) {
     //Get game info
@@ -1142,7 +1360,7 @@ client.on('message', message => {
     for(var i = 0; i < admin.length; i++)
     {
         command = Object.keys(admin[i])[0];
-        if(admin[i][command] === call || call === "clearqueues" || call === "gettime" || call === "clearlogs")
+        if(admin[i][command] === call || call === "clearqueues" || call === "gettime" || call === "clearlogs" || call === "clearteams")
         {
             adminCommand = i;
             adminFound = true;
@@ -1188,6 +1406,13 @@ client.on('message', message => {
                     return;
                 }
                 outputMatches(message, args.shift().toLowerCase(), args.join(" "));
+                break;
+            case "team":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                outputTeamLog(message, args.join(" "));
                 break;
             case "list":
                 if(args.length < 1){
@@ -1301,6 +1526,17 @@ client.on('message', message => {
                 }
                 if(args.join(" ") === "admin"){
                     clearLogs(message);
+                }
+                else
+                    message.channel.send("```diff\n- Invalid password.```");
+                break;
+            case "clearteams":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                if(args.join(" ") === "admin"){
+                    clearteams(message);
                 }
                 else
                     message.channel.send("```diff\n- Invalid password.```");
