@@ -92,6 +92,7 @@ function gameQ(message, call, name, numTeams)
         else
         {
             message.channel.send("```diff\n+ Team added (" + message.member.user.username + ").```");
+            console.log("Team added to queue " + message.member.user.id);
             getCurrentMatches();
         }
     });
@@ -101,7 +102,7 @@ function gameQ(message, call, name, numTeams)
 function getCurrentMatches() {
     //get current date
     participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
-
+    //console.log("Checking for current matches");
     var log = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matchLog.json'), 'utf-8'));
     var teamInfoLog = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/teams.json'), 'utf-8'));
 
@@ -223,10 +224,9 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
     var gameName = "";
     for(var j = 0; j < participants.length; j++)
     {
-        //console.log("gameid: " + gameId);
         if(participants[j].id == gameId)
         {
-            //console.log("gameid: " + gameId);
+            console.log("Setting matches for " + gameId);
             for(var k = 0; k < games.length; k++)
             {
                 if(games[k].id == gameId){
@@ -317,7 +317,7 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             if(log[gameLogPos][completeDate][key] == null) {
                 log[gameLogPos][completeDate][key] = JSON.parse("{}");
             }
-            //client.channels.cache.get(channel).send("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+            console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
             var matchSets = log[gameLogPos][completeDate][key];
 
             log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
@@ -391,7 +391,7 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             if(log[gameLogPos][completeDate][key2] == null) {
                 log[gameLogPos][completeDate][key2] = JSON.parse("{}");
             }
-            //client.channels.cache.get(channel).send("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+            console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
             var matchSets = log[gameLogPos][completeDate][key2];
 
             log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
@@ -447,6 +447,11 @@ function clearQueues() {
                 let team1 = Object.keys(participants[j][key])[0];
                 delete participants[j][key][team1];
             }
+        }
+        while(Object.keys(participants[j]).length > 2)
+        {
+            const key = Object.keys(participants[j])[2];
+            delete participants[j][key];
         }
     }
     var channelID = config.MAIN_CHANNEL;
@@ -564,6 +569,7 @@ function outputTeamLog(message, coachId){
     }
     output += "\n```";
     message.channel.send(output);
+    console.log("Team log generated");
 }
 
 //Outputs the matches on selected date from the matchLog
@@ -601,6 +607,7 @@ function outputMatches(message, id, date) {
     }
     output += "\n```";
     message.channel.send(output);
+    console.log("Match date log generated");
 }
 
 function listTeams(message, id) {
@@ -638,6 +645,7 @@ function listTeams(message, id) {
     }
     output += "\n```";
     message.channel.send(output);
+    console.log("List generated for " + id);
 }
 
 function removeTeam(message, id, coachId){
@@ -665,6 +673,7 @@ function removeTeam(message, id, coachId){
                     delete participants[gamePos][teamsKey][matchKey];
                     message.channel.send("```diff\n- Team has been removed.```");
                     updateJson(message, "matches", participants, "none");
+                    console.log("Team " + coachId + " removed from " + id);
                     return;
                 }
             }
@@ -1235,12 +1244,13 @@ function scheduleStartTime() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
             && games[i][matchTimeKey] != "none")
         {
-            //console.log("Setting cron");
+            console.log("Setting cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * *';
             cronJobs.push(
                 cron.schedule(
                     time,
                     () => {
+                        console.log("Running cron for set time");
                         getCurrentMatches();
                     }
                 ), undefined, true, "UTC"
@@ -1256,6 +1266,7 @@ function scheduleStartTime() {
                 cron.schedule(
                     '00 00 12 * * *',
                     () => {
+                        console.log("Running cron at noon");
                         getCurrentMatches();
                     }
                 ), undefined, true, "UTC"
@@ -1263,11 +1274,13 @@ function scheduleStartTime() {
         }
         //if no date or day of week has been set then adds cron job as specified game start time
         else if(weekday === "none" && date === "none" && games[i][matchTimeKey] != "none") {
+            console.log("Setting cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * *';
             cronJobs.push(
                 cron.schedule(
                     time,
                     () => {
+                        console.log("Running cron for set start time");
                         getCurrentMatches();
                     }
                 ), undefined, true, "UTC"
@@ -1278,6 +1291,7 @@ function scheduleStartTime() {
                 cron.schedule(
                     '00 00 12 * * *',
                     () => {
+                        console.log("Running cron at noon no date");
                         getCurrentMatches();
                     }
                 ), undefined, true, "UTC"
