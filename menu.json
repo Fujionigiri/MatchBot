@@ -7,7 +7,7 @@
     {
         "id": "list",
         "command": "list",
-        "des": "Lists all teams currently in open game queue"
+        "des": "  Lists all teams currently in open game queue"
     },
     {
         "id": "remove",

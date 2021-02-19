@@ -471,7 +471,7 @@ function clearQueues() {
 //Displays queue menu in discord channel where called
 function helpCommand(message)
 {
-    var output = "```md";
+    var output = "```xml";
     
     for(var i = 0; i < games.length; i++)
     {
@@ -479,11 +479,17 @@ function helpCommand(message)
         const nameKey = Object.keys(games[i])[jSonName];
         const des = Object.keys(games[i])[jSonDes];
         const channelID = Object.keys(games[i])[jSonChannel];
-        if(message.channel.id == config.MAIN_CHANNEL || message.channel.id == games[i][channelID])
-            output += ("\n**" + games[i][nameKey] + " Queue**\n" + games[i][des]);
+        if(message.channel.id == config.MAIN_CHANNEL || message.channel.id == games[i][channelID]){
+            output += ("\n**" + games[i][nameKey] + " Queue**\n");
+            for(var k = 0; k < games[i][nameKey].length + 10; k++)
+            {
+                output += "=";
+            }
+            output += "\n" + games[i][des];
+        }
     }
     
-    output += ("\n\n# Menu commands");
+    output += ("\n\n# Menu commands ");
     
     if(games.length == 0) {
         output += "\nNo games have been added yet";
@@ -492,7 +498,7 @@ function helpCommand(message)
     {
         const id = Object.keys(menu[i])[1];
         const des = Object.keys(menu[i])[2];
-        output += ("\n- < " + prefix + menu[i][id] + " > " + menu[i][des]);
+        output += ("\n- <  " + prefix + menu[i][id] + "  >\t" + menu[i][des]);
     }
     output += "\n```";
     message.channel.send(output);
@@ -503,20 +509,20 @@ function helpCommand(message)
 //Displays admin menu in discord channel where called
 function adminMenu(message)
 {
-    var output = "```md";
-    output += ("\n# Admin commands");
+    var output = "```diff";
+    output += ("\n- Admin commands");
     for(var i = 0; i < admin.length; i++)
     {
         const id = Object.keys(admin[i])[1];
         const des = Object.keys(admin[i])[2];
         if(admin[i].id === "role")
-            output += ("\n- < " + prefix + admin[i][id] + " > " + admin[i][des] + config.COACH_ROLE);
+            output += ("\n+ < " + prefix + admin[i][id] + " > \n\t" + admin[i][des] + config.COACH_ROLE);
         else if(admin[i].id === "default"){
             var channel = client.channels.cache.get(config.MAIN_CHANNEL);
-            output += ("\n- < " + prefix + admin[i][id] + " > " + admin[i][des] + channel.name);
+            output += ("\n+ < " + prefix + admin[i][id] + " > \n\t" + admin[i][des] + channel.name);
         }
         else
-            output += ("\n- < " + prefix + admin[i][id] + " > " + admin[i][des]);
+            output += ("\n+ < " + prefix + admin[i][id] + " > \n\t" + admin[i][des]);
     }
     
     output += "\n```";

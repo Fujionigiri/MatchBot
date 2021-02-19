@@ -86,7 +86,7 @@
     {
         "id": "time",
         "command": "time {id} {HHMM} {HHMM}",
-        "des": "Set time window by id, start 0830 = 8:30 am, \n\tend 1500 = 3:00pm, enter none for start, end, or both for no time restriction"
+        "des": "Set time window by id, start 0830 = 8:30 am, end 1500 = 3:00pm, \n\tenter none for start, end, or both for no time restriction"
     }
 
 ]
