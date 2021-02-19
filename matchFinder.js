@@ -485,11 +485,11 @@ function helpCommand(message)
             {
                 output += "=";
             }
-            output += "\n" + games[i][des];
+            output += "\n" + games[i][des] + "\n";
         }
     }
     
-    output += ("\n\n# Menu commands ");
+    output += ("\n# Menu commands ");
     
     if(games.length == 0) {
         output += "\nNo games have been added yet";

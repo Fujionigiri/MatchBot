@@ -31,7 +31,7 @@
     },
     {
         "id": "addgame",
-        "command": "add {id} {name}",
+        "command": "addgame {id} {name}",
         "des": "Add game to list, id is the command - no spaces"
     },
 
