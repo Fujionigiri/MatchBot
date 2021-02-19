@@ -875,7 +875,7 @@ function addQueueTime(message, id, queueTime, queueEnd) {
 function addTime(message, id, start, end) {
     var index = games.findIndex(a=> a.id === id);
     if(index < 0) {
-        message.channel.send("```diff\n- Error: id does not exist, check !help for the list of games.```");
+        message.channel.send("```diff\n- Error: id does not exist, check !menu for the list of games.```");
         return;
     }
     const startHr = parseInt(start.substr(0,2));
@@ -1209,7 +1209,7 @@ function scheduleStartTime() {
         var dateYear="";
         if(games[i][matchTimeKey] != "none") {
             var sTime = 0;
-            if(parseInt(games[i][matchTimeKey].substr(0,2)) > 19) {
+            if(parseInt(games[i][matchTimeKey].substr(0,2)) >= 19) {
                 sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) - 19)
                 startHr = "0" + sTime.toString();
             }
