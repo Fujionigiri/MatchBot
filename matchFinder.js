@@ -494,7 +494,6 @@ function helpCommand(message)
         const des = Object.keys(menu[i])[2];
         output += ("\n- < " + prefix + menu[i][id] + " > " + menu[i][des]);
     }
-    output += ("\n# Access Admin menu -> !admin");
     output += "\n```";
     message.channel.send(output);
 }
