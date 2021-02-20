@@ -1237,20 +1237,21 @@ function scheduleStartTime() {
                 }
             }
             startMin = games[i][matchTimeKey].substr(2,2);
+            console.log("time: " + startMin + " " + startHr);
         }
         if(date != "none") {
             dateMonth = parseInt(games[i][dateKey].substr(0,2));
             dateDay = parseInt(games[i][dateKey].substr(2,2));
             dateYear = parseInt(games[i][dateKey].substr(4,4));
+            console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         }   
 
-        console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
             && games[i][matchTimeKey] != "none")
         {
-            console.log("Setting cron for: " + startHr + ":" + startMin);
+            console.log("Setting this cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * *';
             cronJobs.push(
                 cron.schedule(
