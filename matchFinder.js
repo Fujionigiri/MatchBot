@@ -194,7 +194,7 @@ function getCurrentMatches() {
         if (err)
         {
             client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
+            console.log(err + " matches.json issues");
         }
     });
     
@@ -203,7 +203,7 @@ function getCurrentMatches() {
         if (err)
         {
             client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
+            console.log(err + " matchLog.json issues");
         }
     });
 
@@ -212,7 +212,7 @@ function getCurrentMatches() {
         if (err)
         {
             client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
-            console.log(err);
+            console.log(err + " teams.json issues");
         }
     });
 }
@@ -1242,8 +1242,9 @@ function scheduleStartTime() {
             dateMonth = parseInt(games[i][dateKey].substr(0,2));
             dateDay = parseInt(games[i][dateKey].substr(2,2));
             dateYear = parseInt(games[i][dateKey].substr(4,4));
-        }
+        }   
 
+        console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
