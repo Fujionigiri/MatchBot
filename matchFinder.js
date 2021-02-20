@@ -480,8 +480,8 @@ function helpCommand(message)
         const des = Object.keys(games[i])[jSonDes];
         const channelID = Object.keys(games[i])[jSonChannel];
         if(message.channel.id == config.MAIN_CHANNEL || message.channel.id == games[i][channelID]){
-            output += ("\n**" + games[i][nameKey] + " Queue**\n");
-            for(var k = 0; k < games[i][nameKey].length + 10; k++)
+            output += ("\n**" + games[i][nameKey] + " Queue (" + games[i][id] + "}**\n");
+            for(var k = 0; k < games[i][nameKey].length + games[i][id].length + 13; k++)
             {
                 output += "=";
             }
