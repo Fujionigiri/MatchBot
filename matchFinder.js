@@ -436,6 +436,7 @@ function clearteams(message) {
 //Clears all queues when called to
 function clearQueues() {
     console.log("Clearing queues");
+    participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     for(var j = 0; j < participants.length; j++)
     {
         for(var i = 1; i < Object.keys(participants[j]).length; i++)
@@ -1195,6 +1196,7 @@ function updateJson(message, filename, file, output) {
 //connection ready
 client.on('ready', (evt) => {
     console.log("Connected");
+    participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     games = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/games.json'), 'utf-8'));
     numGames = games.length;
     let scheduledMessage = new cron.schedule('00 00 09 * * *', () => {
