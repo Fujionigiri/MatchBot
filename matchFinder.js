@@ -397,6 +397,25 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
+    //go back through queues and remove anyone that doesn't have match w/message to requeue
+    for(var i = Object.keys(participants[gamePos]).length-1; i > 0; i--)
+    {
+        const key = Object.keys(participants[gamePos])[i];
+        var teams = participants[gamePos][key];
+        console.log(teams);
+        if(Object.keys(participants[gamePos][key]).length > 0){
+            //console.log("matching teams " + key);
+            let team1 = Object.keys(participants[gamePos][key])[0];
+            let team1Name = participants[gamePos][key][team1];
+
+            delete participants[gamePos][key][team1];
+
+            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+            client.channels.cache.get(channel).send("<@School Coach>" + " " +  "<@" + team1 + "> needs a " + key + "match for " + gameName + "."
+                                                        + "\nYou may requeue at 3:30pm to seek a possible match");
+
+        }
+    }
 }
 
 //Clear all the logs
