@@ -1239,7 +1239,7 @@ function scheduleStartTime() {
                 }
             }
             startMin = games[i][matchTimeKey].substr(2,2);
-            console.log("time: " + startMin + " " + startHr);
+            console.log("time: " + startHr + " " + startMin);
         }
         if(date != "none") {
             dateMonth = parseInt(games[i][dateKey].substr(0,2));
@@ -1247,7 +1247,9 @@ function scheduleStartTime() {
             dateYear = parseInt(games[i][dateKey].substr(4,4));
             console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         }   
-
+        console.log("Weekday: " + weekday);
+        console.log("currentweekday: " + currentWeekDay);
+        console.log("game: " + games[i][matchTimeKey]);
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
