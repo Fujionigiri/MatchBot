@@ -1202,6 +1202,12 @@ client.on('ready', (evt) => {
     let scheduledMessage = new cron.schedule('00 00 09 * * *', () => {
     // This runs every day at 04:00:00 to set tournament start schedule
         clearQueues();
+        currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
+        currentMonth = day.getUTCMonth()+1;
+        currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
+        currentYear = day.getUTCFullYear();
+        currentMinutes = day.getUTCMinutes();
+        currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
         //send out match notifications at 3pm
         scheduleStartTime();
     });
