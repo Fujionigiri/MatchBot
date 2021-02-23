@@ -29,6 +29,7 @@ var currentMonth;
 var currentYear;
 var currentHour;
 var currentMinutes;
+var coachRoleId;
 const jSonId = 0;
 const jSonName = 1;
 const jSonChannel = 2;
@@ -411,8 +412,8 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             delete participants[gamePos][key][team1];
 
             //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-            client.channels.cache.get(channel).send("<@School Coach>" + " " +  "<@" + team1 + "> needs a " + key + "match for " + gameName + "."
-                                                        + "\nYou may requeue at 3:30pm to seek a possible match");
+            client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
+                                                        + "\nYou may also requeue at 3:30pm to seek a possible match");
 
         }
     }
@@ -1393,6 +1394,9 @@ client.on('message', message => {
             break;
         }
     }
+
+    //Get coach role id
+    coachRoleId = message.guild.roles.cache.find(role => role.name == config.COACH_ROLE);
 
     //Checks that game id exits (for admin commands)
     for(var i = 0; i < games.length; i++)
