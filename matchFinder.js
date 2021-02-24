@@ -143,7 +143,7 @@ function getCurrentMatches() {
         var endHr="";
         var endMin="";
         endTime = 0;
-        
+        console.log("Current matches for: " + id);
         var currentTime = (currentMinutes < 10) ? parseInt(currentHour.toString() + "0" + currentMinutes.toString()):
                                                     parseInt(currentHour.toString() + currentMinutes.toString());
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
