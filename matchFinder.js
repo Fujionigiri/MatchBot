@@ -75,8 +75,15 @@ function gameQ(message, call, name, numTeams)
     var server = client.guilds.cache.get(message.guild.id);
 
     var value = message.member.user.id;
+    var numTeams = parseInt(teamNumbers.substr(0,1));
     if(participants[gamePos][teamNumbers] == null) {
-        participants[gamePos][teamNumbers] = JSON.parse("{}");
+        for(var i = 1; i <= numTeams; i++)
+        {
+            if(participants[gamePos][i.toString() + " team(s)"] == null){
+                console.log(i.toString() + " team(s) added");
+                participants[gamePos][i.toString() + " team(s)"] = JSON.parse("{}");
+            }
+        }
     }
     
     participants[gamePos][teamNumbers][value] = server.members.cache.get(value).displayName;
@@ -328,74 +335,59 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
     for(var i = Object.keys(participants[gamePos]).length - 1; i > 1; i--)
     {
         const key = Object.keys(participants[gamePos])[i];
-        const key2 = Object.keys(participants[gamePos])[i-1];
-        var teams = participants[gamePos][key];
-        var teams2 = participants[gamePos][key2];
-        //console.log(teams + " " + teams2);
-        if(Object.keys(participants[gamePos][key]).length > 0 && Object.keys(participants[gamePos][key2]).length > 0){
-            //console.log("matching teams " + key);
-            let team1 = Object.keys(participants[gamePos][key])[0];
-            let team1Name = participants[gamePos][key][team1];
-            let team2 = Object.keys(participants[gamePos][key2])[0];
-            let team2Name = participants[gamePos][key2][team2]
-
-            var team1InfoPos = 0;
-            var team2InfoPos = 0;
-            var game1Pos = -1;
-            var game2Pos = -1;
-            for(var g = 0; g < teamInfoLog.length; g++)
-            {
-                if(teamInfoLog[g].id == team1){
-                    team1InfoPos = g;
-                }
-                else if(teamInfoLog[g].id == team2){
-                    team2InfoPos = g;
-                }
-            }
-
-            if(teamInfoLog[team1InfoPos][gameId] == null){
-                teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
-            }
-            if(teamInfoLog[team2InfoPos][gameId] == null){
-                teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
-            }
-            
-            for(var g = 0; g < Object.keys(teamInfoLog[team1InfoPos]).length; g++)
-            {
-                if(Object.keys(teamInfoLog[team1InfoPos])[g] === gameId){
-                    game1Pos = g;
+        if(Object.keys(participants[gamePos][key]).length > 0)
+        {
+            for(var j = i - 1; j > 1; j--){
+                const key2 = Object.keys(participants[gamePos])[j];
+                if( Object.keys(participants[gamePos][key2]).length > 0){
+                    let team1 = Object.keys(participants[gamePos][key])[0];
+                    let team1Name = participants[gamePos][key][team1];
+                    let team2 = Object.keys(participants[gamePos][key2])[0];
+                    let team2Name = participants[gamePos][key2][team2]
+        
+                    var team1InfoPos = 0;
+                    var team2InfoPos = 0;
+        
+                    for(var g = 0; g < teamInfoLog.length; g++)
+                    {
+                        if(teamInfoLog[g].id == team1){
+                            team1InfoPos = g;
+                        }
+                        else if(teamInfoLog[g].id == team2){
+                            team2InfoPos = g;
+                        }
+                    }
+        
+                    if(teamInfoLog[team1InfoPos][gameId] == null){
+                        teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
+                    }
+                    if(teamInfoLog[team2InfoPos][gameId] == null){
+                        teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
+                    }
+                   
+                    team1Sets = teamInfoLog[team1InfoPos][gameId];
+                    team2Sets = teamInfoLog[team2InfoPos][gameId];
+                    teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
+                    teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key; 
+        
+                    delete participants[gamePos][key][team1];
+                    delete participants[gamePos][key2][team2];
+        
+                    //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                    client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key2 + " for " + gameName + ".");
+                    if(log[gameLogPos][completeDate] == null) {
+                        log[gameLogPos][completeDate] = JSON.parse("{}");
+                    }
+                    if(log[gameLogPos][completeDate][key2] == null) {
+                        log[gameLogPos][completeDate][key2] = JSON.parse("{}");
+                    }
+                    console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+                    var matchSets = log[gameLogPos][completeDate][key2];
+        
+                    log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
                     break;
                 }
             }
-
-            for(var g = 0; g < Object.keys(teamInfoLog[team2InfoPos]).length; g++)
-            {
-                if(Object.keys(teamInfoLog[team2InfoPos])[g] === gameId){
-                    game2Pos = g;
-                    break;
-                }
-            }
-           
-            team1Sets = teamInfoLog[team1InfoPos][gameId];
-            team2Sets = teamInfoLog[team2InfoPos][gameId];
-            teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
-            teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key; 
-
-            delete participants[gamePos][key][team1];
-            delete participants[gamePos][key2][team2];
-
-            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-            client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key2 + " for " + gameName + ".");
-            if(log[gameLogPos][completeDate] == null) {
-                log[gameLogPos][completeDate] = JSON.parse("{}");
-            }
-            if(log[gameLogPos][completeDate][key2] == null) {
-                log[gameLogPos][completeDate][key2] = JSON.parse("{}");
-            }
-            console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
-            var matchSets = log[gameLogPos][completeDate][key2];
-
-            log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
     //go back through queues and remove anyone that doesn't have match w/message to requeue
@@ -403,17 +395,15 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
     {
         const key = Object.keys(participants[gamePos])[i];
         var teams = participants[gamePos][key];
-        console.log(teams);
         if(Object.keys(participants[gamePos][key]).length > 0){
             //console.log("matching teams " + key);
             let team1 = Object.keys(participants[gamePos][key])[0];
-            let team1Name = participants[gamePos][key][team1];
 
             delete participants[gamePos][key][team1];
 
             //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
             client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
-                                                        + "\nYou may also requeue at 3:30pm to seek a possible match");
+                                                        + "\nYou may also re-queue at 3:30pm to seek a possible match");
 
         }
     }
@@ -1158,7 +1148,7 @@ function addToQueue(message, id, game, numTeams) {
         }
         else {
             var messageTxt = (queueTime != "none" && endTime != "none") ? 
-                ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + " and ends at " + queueEndTime + " current time is " + currentTime + "```") :
+                ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + " and ends at " + queueEndTime + " it will reopen at " + startTime + ", current time is " + currentTime + "```") :
                 (queueTime != "none") ? ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + "```") :
                 ("```diff\n- Queue time for " + gameName + " ended at " + queueEndTime + "```");
             message.channel.send(messageTxt);
@@ -1222,13 +1212,8 @@ client.on('ready', (evt) => {
     let scheduledMessage = new cron.schedule('00 00 09 * * *', () => {
     // This runs every day at 04:00:00 to set tournament start schedule
         clearQueues();
-        currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
-        currentMonth = day.getUTCMonth()+1;
-        currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
-        currentYear = day.getUTCFullYear();
-        currentMinutes = day.getUTCMinutes();
-        currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
-        //send out match notifications at 3pm
+        
+        //set queues for today
         scheduleStartTime();
     });
     scheduledMessage.start()
@@ -1236,6 +1221,12 @@ client.on('ready', (evt) => {
 
 function scheduleStartTime() {
     //scroll through game json and find all games with current day of the week or current date    
+    currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
+    currentMonth = day.getUTCMonth()+1;
+    currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
+    currentYear = day.getUTCFullYear();
+    currentMinutes = day.getUTCMinutes();
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -1249,6 +1240,7 @@ function scheduleStartTime() {
         var dateMonth="";
         var dateDay="";
         var dateYear="";
+        
         if(games[i][matchTimeKey] != "none") {
             var sTime = 0;
             if(parseInt(games[i][matchTimeKey].substr(0,2)) >= 19) {
