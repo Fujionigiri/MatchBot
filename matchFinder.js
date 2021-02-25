@@ -1221,6 +1221,7 @@ client.on('ready', (evt) => {
 
 function scheduleStartTime() {
     //scroll through game json and find all games with current day of the week or current date    
+    day = new Date();
     currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
     currentMonth = day.getUTCMonth()+1;
     currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
