@@ -402,8 +402,8 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             delete participants[gamePos][key][team1];
 
             //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-            client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
-                                                        + "\nYou may also re-queue at 3:30pm to seek a possible match");
+            //client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
+                                                       // + "\nYou may also re-queue at 3:30pm to seek a possible match");
 
         }
     }
@@ -1228,6 +1228,7 @@ function scheduleStartTime() {
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
+    cronJobs = [];
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
