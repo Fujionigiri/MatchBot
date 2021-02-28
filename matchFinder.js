@@ -207,6 +207,7 @@ function getCurrentMatches() {
         }
         else {
             scheduling = false;
+            console.log("Matches reported");
         }
     });
     
@@ -406,8 +407,8 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             delete participants[gamePos][key][team1];
 
             //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-            //client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
-                                                       // + "\nYou may also re-queue at 3:30pm to seek a possible match");
+            client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
+                                                        + "\nYou may also re-queue at 3:30pm to seek a possible match");
 
         }
     }
@@ -1285,8 +1286,8 @@ function scheduleStartTime() {
                 cron.schedule(
                     time,
                     () => {
-                        console.log("Running cron for set time, weekday = " + weekday);
                         if(!scheduling){
+                            console.log("Running cron for set time, weekday = " + weekday);
                             scheduling = true;
                             getCurrentMatches();
                         }
