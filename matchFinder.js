@@ -30,6 +30,7 @@ var currentYear;
 var currentHour;
 var currentMinutes;
 var coachRoleId;
+var scheduling = false;
 const jSonId = 0;
 const jSonName = 1;
 const jSonChannel = 2;
@@ -203,6 +204,9 @@ function getCurrentMatches() {
         {
             client.channels.cache.get(channelID).send("```diff\n- Internal error occured, could not write to config file.```");
             console.log(err + " matches.json issues");
+        }
+        else {
+            scheduling = false;
         }
     });
     
@@ -1282,7 +1286,10 @@ function scheduleStartTime() {
                     time,
                     () => {
                         console.log("Running cron for set time, weekday = " + weekday);
-                        getCurrentMatches();
+                        if(!scheduling){
+                            scheduling = true;
+                            getCurrentMatches();
+                        }
                     }
                 ), undefined, true, "UTC"
             );
