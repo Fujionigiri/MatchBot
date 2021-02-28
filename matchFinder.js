@@ -1275,12 +1275,12 @@ function scheduleStartTime() {
             && games[i][matchTimeKey] != "none")
         {
             console.log("Setting this cron for: " + startHr + ":" + startMin);
-            var time = '00 ' + startMin + ' ' + startHr + ' * * *';
+            var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
                 cron.schedule(
                     time,
                     () => {
-                        console.log("Running cron for set time");
+                        console.log("Running cron for set time, weekday = " + weekday);
                         getCurrentMatches();
                     }
                 ), undefined, true, "UTC"
@@ -1294,9 +1294,9 @@ function scheduleStartTime() {
         {
             cronJobs.push(
                 cron.schedule(
-                    '00 00 12 * * *',
+                    '00 00 12 * * ' + weekday,
                     () => {
-                        console.log("Running cron at noon");
+                        console.log("Running cron at noon, on weekday = " + weekday);
                         getCurrentMatches();
                     }
                 ), undefined, true, "UTC"
@@ -1328,7 +1328,6 @@ function scheduleStartTime() {
             );
         }
     }
-
     //add each game's start time to the cron job as long as the start time isn't "none"
     
 }
