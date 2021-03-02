@@ -336,82 +336,85 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
-    //go back through and match teams with consecutive # of teams, ex: 4 teams vs 3 teams
-    for(var i = Object.keys(participants[gamePos]).length - 1; i > 1; i--)
-    {
-        const key = Object.keys(participants[gamePos])[i];
-        if(Object.keys(participants[gamePos][key]).length > 0)
+    if(scheduling){
+        //go back through and match teams with teams of other sizes
+        for(var i = Object.keys(participants[gamePos]).length - 1; i > 1; i--)
         {
-            for(var j = i - 1; j > 1; j--){
-                const key2 = Object.keys(participants[gamePos])[j];
-                if( Object.keys(participants[gamePos][key2]).length > 0){
-                    let team1 = Object.keys(participants[gamePos][key])[0];
-                    let team1Name = participants[gamePos][key][team1];
-                    let team2 = Object.keys(participants[gamePos][key2])[0];
-                    let team2Name = participants[gamePos][key2][team2]
-        
-                    var team1InfoPos = 0;
-                    var team2InfoPos = 0;
-        
-                    for(var g = 0; g < teamInfoLog.length; g++)
-                    {
-                        if(teamInfoLog[g].id == team1){
-                            team1InfoPos = g;
+            const key = Object.keys(participants[gamePos])[i];
+            if(Object.keys(participants[gamePos][key]).length > 0)
+            {
+                for(var j = i - 1; j > 1; j--){
+                    const key2 = Object.keys(participants[gamePos])[j];
+                    if( Object.keys(participants[gamePos][key2]).length > 0){
+                        let team1 = Object.keys(participants[gamePos][key])[0];
+                        let team1Name = participants[gamePos][key][team1];
+                        let team2 = Object.keys(participants[gamePos][key2])[0];
+                        let team2Name = participants[gamePos][key2][team2]
+            
+                        var team1InfoPos = 0;
+                        var team2InfoPos = 0;
+            
+                        for(var g = 0; g < teamInfoLog.length; g++)
+                        {
+                            if(teamInfoLog[g].id == team1){
+                                team1InfoPos = g;
+                            }
+                            else if(teamInfoLog[g].id == team2){
+                                team2InfoPos = g;
+                            }
                         }
-                        else if(teamInfoLog[g].id == team2){
-                            team2InfoPos = g;
+            
+                        if(teamInfoLog[team1InfoPos][gameId] == null){
+                            teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
                         }
+                        if(teamInfoLog[team2InfoPos][gameId] == null){
+                            teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
+                        }
+                    
+                        team1Sets = teamInfoLog[team1InfoPos][gameId];
+                        team2Sets = teamInfoLog[team2InfoPos][gameId];
+                        teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
+                        teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key; 
+            
+                        delete participants[gamePos][key][team1];
+                        delete participants[gamePos][key2][team2];
+            
+                        //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                        client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key2 + " for " + gameName + ".");
+                        if(log[gameLogPos][completeDate] == null) {
+                            log[gameLogPos][completeDate] = JSON.parse("{}");
+                        }
+                        if(log[gameLogPos][completeDate][key2] == null) {
+                            log[gameLogPos][completeDate][key2] = JSON.parse("{}");
+                        }
+                        console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+                        var matchSets = log[gameLogPos][completeDate][key2];
+            
+                        log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
+                        break;
                     }
-        
-                    if(teamInfoLog[team1InfoPos][gameId] == null){
-                        teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
-                    }
-                    if(teamInfoLog[team2InfoPos][gameId] == null){
-                        teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
-                    }
-                   
-                    team1Sets = teamInfoLog[team1InfoPos][gameId];
-                    team2Sets = teamInfoLog[team2InfoPos][gameId];
-                    teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
-                    teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key; 
-        
-                    delete participants[gamePos][key][team1];
-                    delete participants[gamePos][key2][team2];
-        
-                    //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-                    client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key2 + " for " + gameName + ".");
-                    if(log[gameLogPos][completeDate] == null) {
-                        log[gameLogPos][completeDate] = JSON.parse("{}");
-                    }
-                    if(log[gameLogPos][completeDate][key2] == null) {
-                        log[gameLogPos][completeDate][key2] = JSON.parse("{}");
-                    }
-                    console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
-                    var matchSets = log[gameLogPos][completeDate][key2];
-        
-                    log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
-                    break;
                 }
             }
         }
-    }
-    //go back through queues and remove anyone that doesn't have match w/message to requeue
-    for(var i = Object.keys(participants[gamePos]).length-1; i > 0; i--)
-    {
-        const key = Object.keys(participants[gamePos])[i];
-        var teams = participants[gamePos][key];
-        if(Object.keys(participants[gamePos][key]).length > 0){
-            //console.log("matching teams " + key);
-            let team1 = Object.keys(participants[gamePos][key])[0];
+        //go back through queues and remove anyone that doesn't have match w/message to requeue
+        for(var i = Object.keys(participants[gamePos]).length-1; i > 0; i--)
+        {
+            const key = Object.keys(participants[gamePos])[i];
+            var teams = participants[gamePos][key];
+            if(Object.keys(participants[gamePos][key]).length > 0){
+                //console.log("matching teams " + key);
+                let team1 = Object.keys(participants[gamePos][key])[0];
 
-            delete participants[gamePos][key][team1];
+                delete participants[gamePos][key][team1];
 
-            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-            client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
-                                                        + "\nYou may also re-queue at 3:30pm to seek a possible match");
+                //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "<@" + team1 + "> needs a " + key + " match for " + gameName + "."
+                                                            + "\nYou may also re-queue at 3:30pm to seek a possible match");
 
+            }
         }
     }
+    
 }
 
 //Clear all the logs
