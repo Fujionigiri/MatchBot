@@ -13,5 +13,10 @@
         "id": "remove",
         "command": "remove",
         "des": "Removes your team from the game queue."
+    },
+    {
+        "id": "rules",
+        "command": "rules",
+        "des": " Posts the friendlies rules to channel."
     }
 ]

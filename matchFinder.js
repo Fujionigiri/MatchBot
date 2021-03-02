@@ -706,6 +706,10 @@ function removeTeam(message, id, coachId){
     message.channel.send("```diff\n- There is no team in the selected queue with that id.```");
 }
 
+function postRules(message){
+    message.channel.send("https://docs.google.com/document/d/1uwrmDi2go7U9fq7PO3RjmQ-uq-jnW58GSPjBtJtUrJ0");
+}
+
 //Adds new game to list if it doesn't already exist by id, adds info to games.json and creates a matching json to store queued teams
 function addGame(message, id, name) {
     if(name.length == 0) {
@@ -1632,6 +1636,9 @@ client.on('message', message => {
             else {
                 message.channel.send("```diff\n- There is not an available queue for this game.```");
             }
+        }
+        else if(call === "rules" && args.length < 1) {
+            postRules(message);
         }
         else if(args.length == 1 && config.MAIN_CHANNEL == message.channel.id && hasPermission(message, "admin")){
             addToQueue(message, games[game][id], game, args.shift().toLowerCase());
