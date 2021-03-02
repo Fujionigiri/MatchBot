@@ -20,6 +20,11 @@
         "des": "Outputs specified coaches match log"
     },
     {
+        "id": "release",
+        "command": "release {password}",
+        "des": "Releases matches in specified queue"
+    },
+    {
         "id": "list",
         "command": "list {id}",
         "des": "Outputs all teams in selected game queue"

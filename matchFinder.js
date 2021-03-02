@@ -1476,6 +1476,14 @@ client.on('message', message => {
                 }
                 outputTeamLog(message, args.join(" "));
                 break;
+            case "release":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                scheduling = true;
+                getCurrentMatches();
+                break;
             case "list":
                 if(args.length < 1){
                     message.channel.send("```diff\n- Invalid number of arguments.```");
