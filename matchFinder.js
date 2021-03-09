@@ -31,6 +31,7 @@ var currentHour;
 var currentMinutes;
 var coachRoleId;
 var scheduling = false;
+var queueing = false;
 const jSonId = 0;
 const jSonName = 1;
 const jSonChannel = 2;
@@ -171,8 +172,7 @@ function openQueue() {
             }
         }
     }
-    
-
+    queueing = false;
 }
 
 function sendMessage(gameId, games,) {
@@ -1403,9 +1403,9 @@ function scheduleStartTime() {
                 cron.schedule(
                     queuetime,
                     () => {
-                        if(!scheduling){
+                        if(!queueing){
                             console.log("Running cron for open queue time, weekday = " + weekday);
-                            scheduling = true;
+                            queueing = true;
                             openQueue();
                         }
                     }
