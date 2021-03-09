@@ -107,6 +107,94 @@ function gameQ(message, call, name, numTeams)
     });
 }
 
+function openQueue() {
+    //scroll through game json and find all games with current day of the week or current date
+    day = new Date();
+    currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay()-1: day.getUTCDay();
+    currentMonth = day.getUTCMonth() + 1;
+    currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
+    currentYear = day.getUTCFullYear();
+    currentMinutes = day.getUTCMinutes();
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
+    for(var i = 0; i < games.length; i++)
+    {
+        const id = Object.keys(games[i])[jSonId];
+        const dayKey = Object.keys(games[i])[jSonWeek];
+        const dateKey = Object.keys(games[i])[jSonDate];
+        const queueStartTimeKey = Object.keys(games[i])[jSonQueue];    
+        const startTimeKey = Object.keys(games[i])[jSonStart];
+        const endTimeKey = Object.keys(games[i])[jSonEnd];
+        var queueEndHr = "";
+        var queueEndMin = "";
+        var queueEndTime = 0;
+        var queueStartHr = "";
+        var queueStartMin = "";
+        var queueStartTime = 0;
+        var endHr="";
+        var endMin="";
+        endTime = 0;
+        console.log("Current matches for: " + games[i][id]);
+        var currentTime = (currentMinutes < 10) ? parseInt(currentHour.toString() + "0" + currentMinutes.toString()):
+                                                    parseInt(currentHour.toString() + currentMinutes.toString());
+        var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
+        var date = (games[i][dateKey] != "none") ? (parseInt(games[i][dateKey])) : (games[i][dateKey]);
+        var dateMonth="";
+        var dateDay="";
+        var dateYear="";
+        if(games[i][queueStartTimeKey] != "none") {
+            queueStartHr = games[i][queueStartTimeKey].substr(0,2);
+            queueStartMin = games[i][queueStartTimeKey].substr(2,2);
+            queueStartTime = parseInt(queueStartHr + queueStartMin);
+        }
+        if(games[i][startTimeKey] != "none") {
+            queueEndHr = games[i][startTimeKey].substr(0,2);
+            queueEndMin = games[i][startTimeKey].substr(2,2);
+            queueEndTime = parseInt(queueEndHr + queueEndMin);
+        }
+        if(games[i][endTimeKey] != "none") {
+            endHr = games[i][endTimeKey].substr(0,2);
+            endMin = games[i][endTimeKey].substr(2,2);
+            endTime = parseInt(endHr + endMin);
+        }
+        if(date != "none") {
+            dateMonth = parseInt(games[i][dateKey].substr(0,2));
+            dateDay = parseInt(games[i][dateKey].substr(2,2));
+            dateYear = parseInt(games[i][dateKey].substr(4,4));
+        }
+        //add cron job to release matches at game's specified start time
+        if((weekday === currentWeekDay || 
+            (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
+        {
+            console.log("current: " + currentTime + " queue start: " + queueStartTime);
+            if(games[i][queueStartTimeKey] != "none" && (currentTime >= queueStartTime && currentTime < starqueueEndTimetTime)) {
+                sendMessage(games[i][id], games);
+            }
+        }
+    }
+    
+
+}
+
+function sendMessage(gameId, games,) {
+    var gamePos = 0;
+    var channel = "";
+    var gameName = "";
+
+    console.log("Sending open queue message to " + gameId);
+    for(var k = 0; k < games.length; k++)
+    {
+        if(games[k].id == gameId){
+            var channelKey = Object.keys(games[gamePos])[jSonChannel];
+            channel = (games[k][channelKey] != "none") ? (games[k][channelKey]) : config.MAIN_CHANNEL;
+            var nameKey = Object.keys(games[k])[jSonName];
+            gameName = games[k][nameKey];
+        }
+    }
+
+    client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
+                                            + "\nJoin by 2:30 for a match.");
+}
+
 //checks through games array to find tournaments that are currently in progress
 function getCurrentMatches() {
     //get current date
@@ -1247,6 +1335,7 @@ function scheduleStartTime() {
         const dayKey = Object.keys(games[i])[jSonWeek];
         const dateKey = Object.keys(games[i])[jSonDate];
         const matchTimeKey = Object.keys(games[i])[jSonQueueEnd];
+        const openQueueKey = Object.keys(games[i])[jSonQueue];
         var startHr="";
         var startMin="";
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
@@ -1273,6 +1362,27 @@ function scheduleStartTime() {
             startMin = games[i][matchTimeKey].substr(2,2);
             console.log("time: " + startHr + " " + startMin);
         }
+
+        //get queue open time
+        if(games[i][openQueueKey] != "none") {
+            var qTime = 0;
+            if(parseInt(games[i][openQueueKey].substr(0,2)) >= 19) {
+                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) - 19)
+                openHr = "0" + qTime.toString();
+            }
+            else{
+                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) + 5)
+                if(qTime < 10){
+                    openHr = "0" + qTime.toString();
+                }
+                else {
+                    openHr = qTime.toString();
+                }
+            }
+            openMin = games[i][openQueueKey].substr(2,2);
+            console.log("Queue open time: " + openHr + " " + openMin);
+        }
+
         if(date != "none") {
             dateMonth = parseInt(games[i][dateKey].substr(0,2));
             dateDay = parseInt(games[i][dateKey].substr(2,2));
@@ -1287,6 +1397,22 @@ function scheduleStartTime() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
             && games[i][matchTimeKey] != "none")
         {
+            console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
+            var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + weekday;
+            cronJobs.push(
+                cron.schedule(
+                    queuetime,
+                    () => {
+                        if(!scheduling){
+                            console.log("Running cron for open queue time, weekday = " + weekday);
+                            scheduling = true;
+                            openQueue();
+                        }
+                    }
+                ), undefined, true, "UTC"
+            );
+
+            //console.log("Schedule set for " + games[i][id]);
             console.log("Setting this cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
