@@ -167,7 +167,7 @@ function openQueue() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
         {
             console.log("current: " + currentTime + " queue start: " + queueStartTime);
-            if(games[i][queueStartTimeKey] != "none" && (currentTime >= queueStartTime && currentTime < starqueueEndTimetTime)) {
+            if(games[i][queueStartTimeKey] != "none" && (currentTime >= queueStartTime && currentTime < queueEndTime)) {
                 sendMessage(games[i][id], games);
             }
         }
