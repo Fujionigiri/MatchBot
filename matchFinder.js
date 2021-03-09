@@ -175,7 +175,7 @@ function openQueue() {
     queueing = false;
 }
 
-function sendMessage(gameId, games,) {
+function sendMessage(gameId, games) {
     var gamePos = 0;
     var channel = "";
     var gameName = "";
