@@ -29,6 +29,7 @@ var currentMonth;
 var currentYear;
 var currentHour;
 var currentMinutes;
+var daylightSavings;
 var coachRoleId;
 var scheduling = false;
 var queueing = false;
@@ -117,6 +118,8 @@ function openQueue() {
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
+    dayLight();
+
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -215,6 +218,7 @@ function getCurrentMatches() {
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
+    dayLight();
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -1319,9 +1323,29 @@ client.on('ready', (evt) => {
     scheduledMessage.start()
 });
 
+function dayLight()
+{
+    Date.prototype.stdTimezoneOffset = function () {
+        var jan = new Date(this.getFullYear(), 0, 1);
+        var jul = new Date(this.getFullYear(), 6, 1);
+        return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+    }
+    
+    Date.prototype.isDstObserved = function () {
+        return this.getTimezoneOffset() < this.stdTimezoneOffset();
+    }
+    
+    var today = new Date();
+    if (today.isDstObserved()) { 
+        daylightSavings = true;
+        currentHour += 1;
+    }
+}
+
 function scheduleStartTime() {
     //scroll through game json and find all games with current day of the week or current date    
     day = new Date();
+    daylightSavings = false;
     currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
     currentMonth = day.getUTCMonth()+1;
     currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
@@ -1329,6 +1353,9 @@ function scheduleStartTime() {
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
     cronJobs = [];
+    
+    dayLight();
+
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -1499,6 +1526,7 @@ client.on('message', message => {
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
 
+    dayLight();
 
     var utcTime = "month: " + day.getUTCMonth() + " day: " + day.getUTCDate() + " year: " + day.getUTCFullYear() 
                     + " hour: " + day.getUTCHours() + " mintues: " + day.getUTCMinutes();
