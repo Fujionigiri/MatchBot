@@ -1309,7 +1309,7 @@ client.on('ready', (evt) => {
     participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     games = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/games.json'), 'utf-8'));
     numGames = games.length;
-    let scheduledMessage = new cron.schedule('00 00 09 * * *', () => {
+    let scheduledMessage = new cron.schedule('00 00 08 * * *', () => {
     // This runs every day at 04:00:00 to set tournament start schedule
         clearQueues();
         
