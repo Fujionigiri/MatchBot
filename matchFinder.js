@@ -579,6 +579,30 @@ function clearQueues() {
     });
 }
 
+function testCron(setHr, setMin, wday) {
+    day = new Date();
+    daylightSavings = false;
+    currentWeekDay = (day.getUTCHours() < 5) ? day.getUTCDay() - 1: day.getUTCDay();
+    currentMonth = day.getUTCMonth()+1;
+    currentDay =  (day.getUTCHours() < 5) ? day.getUTCDate() - 1: day.getUTCDate();
+    currentYear = day.getUTCFullYear();
+    currentMinutes = day.getUTCMinutes();
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 4) ? day.getUTCHours() - 5 + 24 : day.getUTCHours() - 5;
+    var queuetime = '00 ' + setMin + ' ' + setHr + ' * * ' + wday;
+    var crontest = [];
+    crontest.push(
+        cron.schedule(
+            queuetime,
+            () => {
+                var channelID = config.MAIN_CHANNEL;
+                client.channels.cache.get(channelID).send("```diff\n- Cron running.```");
+                crontest = [];
+            }
+        ), undefined, true, "UTC"
+    );
+    
+}
+
 //Displays queue menu in discord channel where called
 function helpCommand(message)
 {
@@ -1336,10 +1360,14 @@ function dayLight()
     }
     
     var today = new Date();
-    if (today.isDstObserved()) { 
-        daylightSavings = true;
-        currentHour += 1;
-    }
+    //if (today.isDstObserved()) { 
+    //    daylightSavings = true;
+    //    currentHour += 1;
+    //    console.log("it's daylight savingings");
+    //}
+    daylightSavings = true;
+    currentHour += 1;
+    console.log("it's daylight savingings");
 }
 
 function scheduleStartTime() {
@@ -1576,7 +1604,8 @@ client.on('message', message => {
     for(var i = 0; i < admin.length; i++)
     {
         command = Object.keys(admin[i])[0];
-        if(admin[i][command] === call || call === "clearqueues" || call === "gettime" || call === "clearlogs" || call === "clearteams")
+        if(admin[i][command] === call || call === "clearqueues" || call === "gettime" 
+            || call === "clearlogs" || call === "clearteams" || call === "croncheck")
         {
             adminCommand = i;
             adminFound = true;
@@ -1764,6 +1793,14 @@ client.on('message', message => {
                 }
                 else
                     message.channel.send("```diff\n- Invalid password.```");
+                break;
+            case "croncheck":
+                if(args.length < 3){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+               
+                testCron(args.shift().toLowerCase(), args.shift(), args.join(" "));
                 break;
         }
     }
