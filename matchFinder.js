@@ -1454,9 +1454,9 @@ function scheduleStartTime() {
             dateYear = parseInt(games[i][dateKey].substr(4,4));
             console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         }   
-        console.log("Weekday: " + weekday);
+        console.log(games[i].id + "Weekday: " + weekday);
         console.log("currentweekday: " + currentWeekDay);
-        console.log("game: " + games[i][matchTimeKey]);
+        console.log(games[i].id + "game time: " + games[i][matchTimeKey]);
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
