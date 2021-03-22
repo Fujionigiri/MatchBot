@@ -1408,15 +1408,15 @@ function scheduleStartTime() {
         var dateMonth="";
         var dateDay="";
         var dateYear="";
-        
+        //times are dealt with here too
         if(games[i][matchTimeKey] != "none") {
             var sTime = 0;
-            if(parseInt(games[i][matchTimeKey].substr(0,2)) >= 19) {
-                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) - 19)
+            if(parseInt(games[i][matchTimeKey].substr(0,2)) >= 20) {
+                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) - 20)
                 startHr = "0" + sTime.toString();
             }
             else{
-                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) + 5)
+                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) + 4)
                 if(sTime < 10){
                     startHr = "0" + sTime.toString();
                 }
@@ -1431,12 +1431,12 @@ function scheduleStartTime() {
         //get queue open time
         if(games[i][openQueueKey] != "none") {
             var qTime = 0;
-            if(parseInt(games[i][openQueueKey].substr(0,2)) >= 19) {
-                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) - 19)
+            if(parseInt(games[i][openQueueKey].substr(0,2)) >= 20) {
+                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) - 20)
                 openHr = "0" + qTime.toString();
             }
             else{
-                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) + 5)
+                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) + 4)
                 if(qTime < 10){
                     openHr = "0" + qTime.toString();
                 }
