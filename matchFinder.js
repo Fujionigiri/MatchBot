@@ -193,10 +193,10 @@ function sendMessage(gameId, games) {
         }
     }
 
-    //client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
-                                            //+ "\nJoin by 2:30 for a match.");
-    client.channels.cache.get(channel).send("<@&" + "role here" + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
+    client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
                                             + "\nJoin by 2:30 for a match.");
+    //client.channels.cache.get(channel).send("<@&" + "role here" + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
+                                            //+ "\nJoin by 2:30 for a match.");
 }
 
 //checks through games array to find tournaments that are currently in progress
@@ -1425,7 +1425,7 @@ function scheduleStartTime() {
                 }
             }
             startMin = games[i][matchTimeKey].substr(2,2);
-            console.log("time: " + startHr + " " + startMin);
+            console.log(games[i].id + " time: " + startHr + " " + startMin);
         }
 
         //get queue open time
@@ -1445,7 +1445,7 @@ function scheduleStartTime() {
                 }
             }
             openMin = games[i][openQueueKey].substr(2,2);
-            console.log("Queue open time: " + openHr + " " + openMin);
+            console.log(games[i].id + " Queue open time: " + openHr + " " + openMin);
         }
 
         if(date != "none") {
@@ -1454,9 +1454,9 @@ function scheduleStartTime() {
             dateYear = parseInt(games[i][dateKey].substr(4,4));
             console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         }   
-        console.log(games[i].id + "Weekday: " + weekday);
+        console.log(games[i].id + " Weekday: " + weekday);
         console.log("currentweekday: " + currentWeekDay);
-        console.log(games[i].id + "game time: " + games[i][matchTimeKey]);
+        console.log(games[i].id + " game time: " + games[i][matchTimeKey]);
         //add cron job to release matches at game's specified start time
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
