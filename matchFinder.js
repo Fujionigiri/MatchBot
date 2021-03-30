@@ -174,7 +174,6 @@ function openQueue() {
             }
         }
     }
-    queueing = false;
 }
 
 function sendMessage(gameId, games) {
@@ -1392,7 +1391,7 @@ function scheduleStartTime() {
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
     cronJobs = [];
-    
+    queueing = false;
 
     for(var i = 0; i < games.length; i++)
     {
