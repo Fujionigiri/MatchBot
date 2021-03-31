@@ -1467,11 +1467,11 @@ function scheduleStartTime() {
                 cron.schedule(
                     queuetime,
                     () => {
-                        if(!queueing){
+                        
                             console.log("Running cron for open queue time, weekday = " + weekday);
                             queueing = true;
                             openQueue();
-                        }
+                        
                     }
                 ), undefined, true, "UTC"
             );
