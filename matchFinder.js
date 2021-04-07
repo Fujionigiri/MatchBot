@@ -1396,6 +1396,7 @@ function dayLight()
 function scheduleStartTime() {
     //scroll through game json and find all games with current day of the week or current date    
     day = new Date();
+    clearCrons();
     daylightSavings = false;
     currentWeekDay = (day.getUTCHours() < 4) ? day.getUTCDay() - 1: day.getUTCDay();
     currentMonth = day.getUTCMonth()+1;
@@ -1479,7 +1480,7 @@ function scheduleStartTime() {
                 console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
                 queueList.push(queuetime);
                 cronJobs.push(
-                    cron.schedule(
+                    new cron.schedule(
                         queuetime,
                         () => {
                             
@@ -1493,7 +1494,7 @@ function scheduleStartTime() {
             console.log("Setting this cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
-                cron.schedule(
+                new cron.schedule(
                     time,
                     () => {
                         if(!scheduling){
@@ -1512,7 +1513,7 @@ function scheduleStartTime() {
              && games[i][matchTimeKey] === "none")
         {
             cronJobs.push(
-                cron.schedule(
+                new cron.schedule(
                     '00 00 12 * * ' + weekday,
                     () => {
                         console.log("Running cron at noon, on weekday = " + weekday);
@@ -1526,7 +1527,7 @@ function scheduleStartTime() {
             console.log("Setting cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * *';
             cronJobs.push(
-                cron.schedule(
+                new cron.schedule(
                     time,
                     () => {
                         console.log("Running cron for set start time");
@@ -1537,7 +1538,7 @@ function scheduleStartTime() {
         }
         else if(weekday === "none" && date === "none" && games[i][matchTimeKey] === "none") {
             cronJobs.push(
-                cron.schedule(
+                new cron.schedule(
                     '00 00 12 * * *',
                     () => {
                         console.log("Running cron at noon no date");
