@@ -1396,7 +1396,6 @@ function dayLight()
 function scheduleStartTime() {
     //scroll through game json and find all games with current day of the week or current date    
     day = new Date();
-    clearCrons();
     daylightSavings = false;
     currentWeekDay = (day.getUTCHours() < 4) ? day.getUTCDay() - 1: day.getUTCDay();
     currentMonth = day.getUTCMonth()+1;
