@@ -1475,7 +1475,7 @@ function scheduleStartTime() {
             && games[i][matchTimeKey] != "none")
         {
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + weekday;
-            if(queueList.indexOf(queuetime) < 0){
+            //if(queueList.indexOf(queuetime) < 0){
                 console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
                 queueList.push(queuetime);
                 cronJobs.push(
@@ -1489,7 +1489,7 @@ function scheduleStartTime() {
                         }
                     ), undefined, true, "UTC"
                 );
-            }
+            //}
             console.log("Setting this cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
