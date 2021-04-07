@@ -1344,7 +1344,6 @@ client.on('ready', (evt) => {
         clearQueues();
         clearCrons();
         //set queues for today
-        scheduleStartTime();
     });
     scheduledMessage.start()
 });
@@ -1358,6 +1357,7 @@ function clearCrons(){
     }
     cronJobs = [];
     queueList = [];
+    scheduleStartTime();
 }
 
 function dayLight()
