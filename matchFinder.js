@@ -193,10 +193,10 @@ function sendMessage(gameId, games) {
         }
     }
 
-    //client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
-                                           // + "\nJoin by 2:30 for a match.");
-    client.channels.cache.get(channel).send("<@&" + "role here" + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
+    client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
                                             + "\nJoin by 2:30 for a match.");
+    //client.channels.cache.get(channel).send("<@&" + "role here" + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
+                                            //+ "\nJoin by 2:30 for a match.");
 }
 
 //checks through games array to find tournaments that are currently in progress
@@ -1352,7 +1352,7 @@ client.on('ready', (evt) => {
 function clearCrons(){
     for(var i = 0; i < cronJobs.length; i++)
     {
-        console.log("destroying: " + cronJobs[i]);
+        //console.log("destroying: " + cronJobs[i]);
         if(cronJobs[i] != null && cronJobs[i] != true && cronJobs[i] != false && cronJobs[i] != "UTC")
             cronJobs[i].destroy();
     }
@@ -1475,7 +1475,7 @@ function scheduleStartTime() {
             && games[i][matchTimeKey] != "none")
         {
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + weekday;
-            //if(queueList.indexOf(queuetime) < 0){
+            if(queueList.indexOf(queuetime) < 0){
                 console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
                 queueList.push(queuetime);
                 cronJobs.push(
@@ -1489,7 +1489,7 @@ function scheduleStartTime() {
                         }
                     ), undefined, true, "UTC"
                 );
-            //}
+            }
             console.log("Setting this cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
