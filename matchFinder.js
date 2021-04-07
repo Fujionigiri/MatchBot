@@ -10,6 +10,7 @@ process.env.TZ = "UTC";
 const config = require("./data/config.json");
 const cron = require('node-cron');
 var cronJobs = [];
+var queueList = [];
 var fs = require("fs");
 var path = require("path");
 const gameJson = require("./data/games.json");
@@ -1341,12 +1342,23 @@ client.on('ready', (evt) => {
     let scheduledMessage = new cron.schedule('00 00 08 * * *', () => {
     // This runs every day at 04:00:00 to set tournament start schedule
         clearQueues();
-        
+        clearCrons();
         //set queues for today
         scheduleStartTime();
     });
     scheduledMessage.start()
 });
+
+function clearCrons(){
+    for(var i = 0; i < cronJobs.length; i++)
+    {
+        console.log("destroying: " + cronJobs[i]);
+        if(cronJobs[i] != null && cronJobs[i] != true && cronJobs[i] != false && cronJobs[i] != "UTC")
+            cronJobs[i].destroy();
+    }
+    cronJobs = [];
+    queueList = [];
+}
 
 function dayLight()
 {
@@ -1391,15 +1403,8 @@ function scheduleStartTime() {
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
-    var queueList = [];
     console.log("number of jobs: " + cronJobs.length);
-    for(var i = 0; i < cronJobs.length; i++)
-    {
-        console.log("destroying: " + cronJobs[i]);
-        if(cronJobs[i] != null && cronJobs[i] != true && cronJobs[i] != false && cronJobs[i] != "UTC")
-            cronJobs[i].destroy();
-    }
-    cronJobs = [];
+    
     
     for(var i = 0; i < games.length; i++)
     {
