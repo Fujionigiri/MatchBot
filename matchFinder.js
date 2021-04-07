@@ -192,10 +192,10 @@ function sendMessage(gameId, games) {
         }
     }
 
-    client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
+    //client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
+                                           // + "\nJoin by 2:30 for a match.");
+    client.channels.cache.get(channel).send("<@&" + "role here" + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
                                             + "\nJoin by 2:30 for a match.");
-    //client.channels.cache.get(channel).send("<@&" + "role here" + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
-                                            //+ "\nJoin by 2:30 for a match.");
 }
 
 //checks through games array to find tournaments that are currently in progress
@@ -434,7 +434,7 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             const key = Object.keys(participants[gamePos])[i];
             if(Object.keys(participants[gamePos][key]).length > 0)
             {
-                for(var j = i - 1; j > 1; j--){
+                for(var j = i - 1; j > 0; j--){
                     const key2 = Object.keys(participants[gamePos])[j];
                     if( Object.keys(participants[gamePos][key2]).length > 0){
                         let team1 = Object.keys(participants[gamePos][key])[0];
@@ -1239,6 +1239,7 @@ function addToQueue(message, id, game, numTeams) {
     var startTime = (gameList[game][startTimeKey] != "none") ? (parseInt(gameList[game][startTimeKey])) : (gameList[game][startTimeKey]);
     var endTime = (gameList[game][endTimeKey] != "none") ? (parseInt(gameList[game][endTimeKey])) : (gameList[game][endTimeKey]);
 
+
     var maxNumTeams = parseInt(gameList[game][maxTeamsKey]);
 
     if(date != "none") {
@@ -1390,9 +1391,16 @@ function scheduleStartTime() {
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+    var queueList = [];
+    console.log("number of jobs: " + cronJobs.length);
+    for(var i = 0; i < cronJobs.length; i++)
+    {
+        console.log("destroying: " + cronJobs[i]);
+        if(cronJobs[i] != null && cronJobs[i] != true && cronJobs[i] != false && cronJobs[i] != "UTC")
+            cronJobs[i].destroy();
+    }
     cronJobs = [];
-    queueing = false;
-
+    
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -1463,20 +1471,20 @@ function scheduleStartTime() {
         {
             console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + weekday;
-            cronJobs.push(
-                cron.schedule(
-                    queuetime,
-                    () => {
-                        
-                            console.log("Running cron for open queue time, weekday = " + weekday);
-                            queueing = true;
-                            openQueue();
-                        
-                    }
-                ), undefined, true, "UTC"
-            );
-
-            //console.log("Schedule set for " + games[i][id]);
+            if(queueList.indexOf(queuetime) < 0){
+                queueList.push(queuetime);
+                cronJobs.push(
+                    cron.schedule(
+                        queuetime,
+                        () => {
+                            
+                                console.log("Running cron for open queue time, weekday = " + weekday);
+                                openQueue();
+                            
+                        }
+                    ), undefined, true, "UTC"
+                );
+            }
             console.log("Setting this cron for: " + startHr + ":" + startMin);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
@@ -1535,7 +1543,7 @@ function scheduleStartTime() {
         }
     }
     //add each game's start time to the cron job as long as the start time isn't "none"
-    
+    console.log("Number of queues: " + queueList.length);
 }
 
 //processes input
