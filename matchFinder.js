@@ -1469,9 +1469,9 @@ function scheduleStartTime() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
             && games[i][matchTimeKey] != "none")
         {
-            console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + weekday;
             if(queueList.indexOf(queuetime) < 0){
+                console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
                 queueList.push(queuetime);
                 cronJobs.push(
                     cron.schedule(
