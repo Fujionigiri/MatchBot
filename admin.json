@@ -31,7 +31,7 @@
     },
     {
         "id": "removeteam",
-        "command": "removeTeam {gameId} {coachId}",
+        "command": "removeteam {gameId} {coachId}",
         "des": "Remove selected coach from gameId queue"
     },
     {
@@ -84,8 +84,8 @@
 
     {
         "id": "queue",
-        "command": "queue {id} {HHMM} {HHMM}",
-        "des": "Set time to open match queue, teams released and matched at start time"
+        "command": "queue {id} {Hours} {HHMM}",
+        "des": "Set hours queue is open and close match queue time on match day, teams released and matched at indicated start time"
     },
 
     {

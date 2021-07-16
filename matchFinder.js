@@ -40,11 +40,12 @@ const jSonChannel = 2;
 const jSonDes = 3;
 const jSonMaxTeams = 4;
 const jSonWeek = 5;
-const jSonDate = 6;
-const jSonQueue = 7;
-const jSonQueueEnd = 8;
-const jSonStart = 9;
-const jSonEnd = 10;
+const jSonQWeek = 6;
+const jSonDate = 7;
+const jSonQueue = 8;
+const jSonQueueEnd = 9;
+const jSonStart = 10;
+const jSonEnd = 11;
 
 //Adds team to requested game queue (example: !overwatch 3 -> adds coaches discord id to matches.json overwatch queue under 3 teams) 
 //if date and time are valid and game exists.
@@ -123,7 +124,7 @@ function openQueue() {
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
-        const dayKey = Object.keys(games[i])[jSonWeek];
+        const dayKey = Object.keys(games[i])[jSonQWeek];
         const dateKey = Object.keys(games[i])[jSonDate];
         const queueStartTimeKey = Object.keys(games[i])[jSonQueue];    
         const startTimeKey = Object.keys(games[i])[jSonStart];
@@ -165,7 +166,7 @@ function openQueue() {
             dateDay = parseInt(games[i][dateKey].substr(2,2));
             dateYear = parseInt(games[i][dateKey].substr(4,4));
         }
-        //add cron job to release matches at game's specified start time
+
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
         {
@@ -245,16 +246,19 @@ function getCurrentMatches() {
         var dateDay="";
         var dateYear="";
         if(games[i][queueEndTimeKey] != "none") {
+            console.log("queue end: " + games[i][queueEndTimeKey].substr(0,2));
             queueEndHr = games[i][queueEndTimeKey].substr(0,2);
             queueEndMin = games[i][queueEndTimeKey].substr(2,2);
             queueEndTime = parseInt(queueEndHr + queueEndMin);
         }
         if(games[i][startTimeKey] != "none") {
+            console.log("start time: " + games[i][startTimeKey].substr(0,2));
             startHr = games[i][startTimeKey].substr(0,2);
             startMin = games[i][startTimeKey].substr(2,2);
             startTime = parseInt(startHr + startMin);
         }
         if(games[i][endTimeKey] != "none") {
+            console.log("end time: " + games[i][endTimeKey].substr(0,2))
             endHr = games[i][endTimeKey].substr(0,2);
             endMin = games[i][endTimeKey].substr(2,2);
             endTime = parseInt(endHr + endMin);
@@ -827,6 +831,73 @@ function postRules(message){
     message.channel.send("https://docs.google.com/document/d/1uwrmDi2go7U9fq7PO3RjmQ-uq-jnW58GSPjBtJtUrJ0");
 }
 
+function updateGameQueueDay(message, id){
+    var location = -1;
+
+    //checks to see if game exists (by id)
+    for(var i = 0; i < games.length; i++)
+    {
+        const idKey = Object.keys(games[i])[0];
+        if(games[i][idKey] == id)
+        {
+            location = i;
+            break;
+        }
+    }
+    if(location == -1){
+        message.channel.send("```diff\n- Error: Game doesn't exist.```");
+        return;
+    }
+
+    console.log("game found");
+
+    //Get current game info
+    var gameName = games[location]["name"];
+    var gameChannel = games[location]["channel"];
+    var gameDes = games[location]["des"];
+    var gameMax = games[location]["max teams"];
+    var gameWeekday = games[location]["weekday"];
+    var gameDate = games[location]["date"];
+    var gameQStart = games[location]["queue start"];
+    var gameQEnd = games[location]["queue end"];
+    var gameStart = games[location]["start time"];
+    var gameEnd = games[location]["end time"];
+
+    games.splice(location, 1);
+
+    console.log(gameName + " information received");
+
+    console.log("des" + gameDes);
+    //if game doesn't exist create a file in games.json
+    games.push(JSON.parse("{\"" + "id" + "\":\"" + id 
+                            +"\", \n\"name\": \"" + gameName
+                            + "\", \n\"channel\": \"" + gameChannel
+                            + "\", \n\"des\": \"" + "none"
+                            + "\", \n\"max teams\": \"" + gameMax
+                            + "\", \n\"weekday\": \"" + gameWeekday
+                            + "\", \n\"queue weekday\": \"" + gameWeekday
+                            + "\", \n\"date\": \"" + gameDate 
+                            + "\", \n\"queue start\": \"" + gameQStart
+                            + "\", \n\"queue end\": \"" + gameQEnd
+                            + "\", \n\"start time\": \"" + gameStart 
+                            + "\", \n\"end time\": \"" + gameEnd + "\"}"));
+    
+                            //update games.json with new games array file
+    fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
+    {
+        if (err)
+        {
+            message.channel.send("```diff\n- Internal error occured, could not write to config file.```");
+            console.log(err);
+        }
+        else {
+            message.channel.send("```diff\n+ Game updated (" + gameName + ").```");
+            addDes(message, id, gameDes);
+        }
+    });
+
+}
+
 //Adds new game to list if it doesn't already exist by id, adds info to games.json and creates a matching json to store queued teams
 function addGame(message, id, name) {
     if(name.length == 0) {
@@ -854,6 +925,7 @@ function addGame(message, id, name) {
                             + "\", \n\"des\": \"" + "add description"
                             + "\", \n\"max teams\": \"" + parseInt("10")
                             + "\", \n\"weekday\": \"" + "none"
+                            + "\", \n\"queue weekday\": \"" + "none"
                             + "\", \n\"date\": \"" + "none" 
                             + "\", \n\"queue start\": \"" + "none"
                             + "\", \n\"queue end\": \"" + "none"
@@ -956,6 +1028,9 @@ function addWeekday(message, id, dayOfWeek) {
         return;
     }
     games[index]["weekday"] = (dayOfWeek === "none") ? ("none" ) : (parseInt(dayOfWeek) - 1).toString();
+    console.log("weekday: " + games[index]["weekday"]);
+    console.log("queue weekday: " + games[index]["queue weekday"]);
+    games[index]["queue weekday"] = (dayOfWeek === "none") ? ("none" ) : (parseInt(dayOfWeek) - 1).toString();
     updateJson(message, "games", games, "```diff\n+ " + id + " weekly competition day has been added/updated.```");
 }
 
@@ -984,31 +1059,60 @@ function addQueueTime(message, id, queueTime, queueEnd) {
         return;
     }
 
-    const queueHr = parseInt(queueTime.substr(0,2));
-    const queueMin = parseInt(queueTime.substr(2,2));
     const queueEndHr = parseInt(queueEnd.substr(0,2));
     const queueEndMin = parseInt(queueEnd.substr(2,2));
+
+    const weekdayKey = Object.keys(games[index])[jSonWeek];
+    var qthisWeekday = games[index][weekdayKey];
+    var queueHr = queueEndHr - Math.floor(Number(queueTime));
+    var days = 0;
+    if(queueHr < 0){
+        days = Math.floor(Math.abs(queueHr)/24) + 1;
+        var time = Math.abs(queueHr) % 24;
+        queueHr = 24 - time;
+    }
+
+    console.log("computation: " + (parseInt((Number(queueTime) - parseInt(Number(queueTime)))*60.0)));
+    var queueMin = queueEndMin - (parseInt((Number(queueTime) - parseInt(Number(queueTime)))*60.0));
+    console.log("end queue time: " + queueEndMin);
+    if(queueMin < 0){
+        queueMin += 60;
+        queueHr -= 1;
+        if(queueHr < 0){
+            queueHr = 23;
+            days += 1;
+        }
+    }
+
+    games[index]["queue weekday"] = (qthisWeekday - days >= 0) ? String(qthisWeekday - days) : String(qthisWeekday - days + 7);
+
+    console.log("qWeekday: " + qthisWeekday);
+    console.log("days: " + days);
+    console.log("queueHr: " + queueHr);
+    console.log("queueMin: " + queueMin);
+    console.log("queueTime: " + parseFloat(queueTime));
+
     const startTimeKey = Object.keys(games[index])[jSonStart];
     const startTime = games[index][startTimeKey];
-    if(queueTime.length < 4 || queueTime.length > 4 || queueHr < 0 || queueHr > 23 
-        || queueMin < 0 || queueMin > 59 || isNaN(queueHr) || isNaN(queueMin)) {
-        message.channel.send("```diff\n- Error: Inputted time is not valid, please use a valid time in the format HHMM or none for no time, example: 8:45 = 0845.```");
+
+    if(parseFloat(queueTime) <= 0 || queueHr < 0 || queueHr > 23 
+        || queueMin < 0 || queueMin > 59) {
+        message.channel.send("```diff\n- Error1: Inputted time is not valid, please use a valid time in the format HHMM or none for no time, example: 8:45 = 0845.```");
         return;
     }
     else if(queueEnd.length < 4 || queueEnd.length > 4 || queueEndHr < 0 || queueEndHr > 23 
         || queueEndMin < 0 || queueEndMin > 59 || isNaN(queueEndHr) || isNaN(queueEndMin)) {
-        message.channel.send("```diff\n- Error: Inputted time is not valid, please use a valid time in the format HHMM or none for no time, example: 8:45 = 0845.```");
+        message.channel.send("```diff\n- Error2: Inputted time is not valid, please use a valid time in the format HHMM or none for no time, example: 8:45 = 0845.```");
         return;
     }
-    else if(parseInt(queueTime) > parseInt(startTime) || parseInt(queueEnd) > parseInt(startTime)) {
-        message.channel.send("```diff\n- Error: Queue time cannot come after start time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
+    else if(parseInt(queueEnd) > parseInt(startTime)) {
+        message.channel.send("```diff\n- Error3: Queue time cannot come after start time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
         return;
     }
-    else if(parseInt(queueTime) > parseInt(queueEnd)) {
-        message.channel.send("```diff\n- Error: Start time cannot come after end time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
-        return;
-    }
-    games[index]["queue start"] = queueTime;
+    
+    const queueHrString = (queueHr < 10) ? "0" + String(queueHr) : String(queueHr);
+    const queueMinString = (queueMin < 10) ? "0" + String(queueMin) : String(queueMin);
+    games[index]["queue start"] = queueHrString + queueMinString;
     games[index]["queue end"] = queueEnd;
     fs.writeFile(path.join(__dirname + '/data/games.json'), JSON.stringify(games, null, 4), (err) =>
     {
@@ -1050,7 +1154,7 @@ function addTime(message, id, start, end) {
         message.channel.send("```diff\n- Error: Start time cannot come after end time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
         return;
     }
-    else if(parseInt(queueTime) > parseInt(start) || parseInt(queueEndTime) > parseInt(start)) {
+    else if(parseInt(queueEndTime) > parseInt(start)) {
         message.channel.send("```diff\n- Error: Start time cannot come before queue time, please use a valid time in the format HHMM, example: 8:45 = 0845.```");
         return;
     }
@@ -1085,6 +1189,11 @@ function printDetails(message, id) {
     {
         const key = Object.keys(games[index])[i];
         if(key === "weekday") {
+            var weekday = games[index][key];
+            output += (weekday != "none") ? ("\n- < " + key + " > " + getWeekday(games[index][key])) 
+                                        : ("\n- < " + key + " > " + games[index][key]);
+        }
+        else if(key === "queue weekday") {
             var weekday = games[index][key];
             output += (weekday != "none") ? ("\n- < " + key + " > " + getWeekday(games[index][key])) 
                                         : ("\n- < " + key + " > " + games[index][key]);
@@ -1180,7 +1289,7 @@ function hasPermission(message, role)
 function addTeamInfo(message, coachId, name, gameId) {
     var teamInfoLog = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/teams.json'), 'utf-8'));
 
-    //checks to see if game already exists (by id)
+    //checks to see if team already exists (by id)
     for(var i = 0; i < teamInfoLog.length; i++)
     {
         const idKey = Object.keys(teamInfoLog[i])[0];
@@ -1190,13 +1299,13 @@ function addTeamInfo(message, coachId, name, gameId) {
         }
     }
     console.log("name: " + name + " id: " + coachId);
-    //if game doesn't exist create a file in games.json
+    //if game doesn't exist create a file in teams.json
     teamInfoLog.push(JSON.parse("{\"" + "id" + "\":\"" + coachId 
                             +"\", \n\"name\": \"" + name 
                             + "\", \n\"" + gameId + "\": " + "{}"
                             + " }"));
 
-    //update games.json with new games array file
+    //update teams.json with new team file
     fs.writeFile(path.join(__dirname + '/data/teams.json'), JSON.stringify(teamInfoLog, null, 4), (err) =>
     {
         if (err)
@@ -1218,6 +1327,7 @@ function addToQueue(message, id, game, numTeams) {
     const gameName = gameList[game]["name"];
     const channelKey = Object.keys(gameList[game])[jSonChannel];
     const dayKey = Object.keys(gameList[game])[jSonWeek];
+    const qDayKey = Object.keys(gameList[game])[jSonQWeek];
     const nameKey = Object.keys(gameList[game])[jSonName];
     const dateKey = Object.keys(gameList[game])[jSonDate];
     const startTimeKey = Object.keys(gameList[game])[jSonStart];
@@ -1230,6 +1340,7 @@ function addToQueue(message, id, game, numTeams) {
                                                 : (parseInt(currentHour.toString() + currentMinutes.toString()));
     
     var weekday = (gameList[game][dayKey] != "none") ? (parseInt(gameList[game][dayKey])) : (gameList[game][dayKey]);
+    var queueWeekday = (gameList[game][qDayKey] != "none") ? (parseInt(gameList[game][qDayKey])) : (gameList[game][qDayKey]);
     var date = (gameList[game][dateKey] != "none") ? (parseInt(gameList[game][dateKey])) : (gameList[game][dateKey]);
 
     var dateMonth;
@@ -1267,19 +1378,20 @@ function addToQueue(message, id, game, numTeams) {
         return;
     }
     //Checks if weekday or date has been set, then checks time to make sure currentTime is valid to join queue
-    if((weekday === "none" && date === "none") 
-        || weekday == currentWeekDay
+    if((queueWeekday === "none" && date === "none") 
+        || (currentWeekDay >= queueWeekday && currentWeekDay <= weekday)
         || (currentMonth + 1 == dateMonth && currentDay == dateDay && currentYear == dateYear)) {
-        if((currentTime >= queueTime && currentTime <= queueEndTime) 
+            //fix this to work for multiple days
+        if((currentWeekDay == queueWeekday && currentTime >= queueTime) || (currentWeekDay == weekday && currentTime <= queueEndTime) 
             || (currentTime >= startTime && currentTime <= endTime)
-            || (currentTime >= queueTime && queueEndTime === "none")
+            || (currentWeekDay == queueWeekday && currentTime >= queueTime && queueEndTime === "none")
             || (queueTime === "none" && endTime === "none")) {
                 gameQ(message, id, gameList[game][nameKey], numTeams);
         }
         else {
             var messageTxt = (queueTime != "none" && endTime != "none") ? 
                 ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + " and ends at " + queueEndTime + " it will reopen at " + startTime + ", current time is " + currentTime + "```") :
-                (queueTime != "none") ? ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + "```") :
+                (queueTime != "none") ? ("```diff\n- Queue time for " + gameName + " starts at " + queueTime + " the time currently is " + currentTime + "```") :
                 ("```diff\n- Queue time for " + gameName + " ended at " + queueEndTime + "```");
             message.channel.send(messageTxt);
             return;
@@ -1288,29 +1400,29 @@ function addToQueue(message, id, game, numTeams) {
     //One or more of the conditions have not been met, output queue window to clarify availability to user
     else
     {
-        var messageTxt = (weekday === "none" && queueTime != "none" && endTime != "none") ? ("```diff\n- "+ gameName + " queue is open on " 
+        var messageTxt = (queueWeekday === "none" && queueTime != "none" && endTime != "none") ? ("```diff\n- 1"+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + " from " + queueTime + " to " + queueEndTime + "```") :
 
-                    (weekday === "none" && queueTime === "none" && endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
+                    (queueWeekday === "none" && queueTime === "none" && endTime === "none") ? ("```diff\n- 2"+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + "```") :
                     
-                    (weekday === "none" && queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
+                    (queueWeekday === "none" && queueTime === "none") ? ("```diff\n- 3"+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + " until " + queueEndTime + "```") :
 
-                    (weekday === "none" && endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
+                    (queueWeekday === "none" && endTime === "none") ? ("```diff\n- 4"+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + " starting at " + queueTime + "```") :
 
-                    (endTime === "none" && queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s```"):
+                    (endTime === "none" && queueTime === "none") ? ("```diff\n- 5"+ gameName + " queue is open on " 
+                    + getWeekday(queueWeekday.toString()) + "s```"):
 
-                    (queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s until " + queueEndTime + "```") :
+                    (queueTime === "none") ? ("```diff\n- 6"+ gameName + " queue is open on " 
+                    + getWeekday(queueWeekday.toString()) + "s until " + queueEndTime + "```") :
 
-                    (endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s starting at " + queueTime + "```"):
+                    (endTime === "none") ? ("```diff\n- 7"+ gameName + " queue is open on " 
+                    + getWeekday(queueWeekday.toString()) + "s starting at " + queueTime + "```"):
 
-                    ("```diff\n- "+ gameName + " queue is open on " 
-                    + getWeekday(weekday.toString()) + "s from " + queueTime + " to " + queueEndTime +  "```");
+                    ("```diff\n- 8"+ gameName + " queue is open on " 
+                    + getWeekday(queueWeekday.toString()) + "s from " + queueTime + " to " + queueEndTime +  "```");
 
         message.channel.send(messageTxt);
         return;
@@ -1339,8 +1451,8 @@ client.on('ready', (evt) => {
     participants = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/matches.json'), 'utf-8'));
     games = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/games.json'), 'utf-8'));
     numGames = games.length;
-    let scheduledMessage = new cron.schedule('00 00 08 * * *', () => {
-    // This runs every day at 04:00:00 to set tournament start schedule
+    let scheduledMessage = new cron.schedule('00 00 08 * * 0', () => {
+    // This runs every Sunday at 04:00:00 to set tournament start schedule
         clearQueues();
         clearCrons();
         //set queues for today
@@ -1410,12 +1522,14 @@ function scheduleStartTime() {
     {
         const id = Object.keys(games[i])[jSonId];
         const dayKey = Object.keys(games[i])[jSonWeek];
+        const qDayKey = Object.keys(games[i])[jSonQWeek];
         const dateKey = Object.keys(games[i])[jSonDate];
         const matchTimeKey = Object.keys(games[i])[jSonQueueEnd];
         const openQueueKey = Object.keys(games[i])[jSonQueue];
         var startHr="";
         var startMin="";
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
+        var qWeekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
         var date = (games[i][dateKey] != "none") ? (parseInt(games[i][dateKey])) : (games[i][dateKey]);
         var dateMonth="";
         var dateDay="";
@@ -1466,15 +1580,16 @@ function scheduleStartTime() {
             dateYear = parseInt(games[i][dateKey].substr(4,4));
             console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         }   
+        console.log(games[i].id + " Queue Weekday: " + qWeekday);
         console.log(games[i].id + " Weekday: " + weekday);
         console.log("currentweekday: " + currentWeekDay);
         console.log(games[i].id + " game time: " + games[i][matchTimeKey]);
         //add cron job to release matches at game's specified start time
-        if((weekday === currentWeekDay || 
+        if((qWeekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
             && games[i][matchTimeKey] != "none")
         {
-            var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + weekday;
+            var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + qWeekday;
             if(queueList.indexOf(queuetime) < 0){
                 console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
                 queueList.push(queuetime);
@@ -1483,7 +1598,7 @@ function scheduleStartTime() {
                         queuetime,
                         () => {
                             
-                                console.log("Running cron for open queue time, weekday = " + weekday);
+                                console.log("Running cron for open queue time, weekday = " + qweekday);
                                 openQueue();
                             
                         }
@@ -1625,10 +1740,11 @@ client.on('message', message => {
     {
         command = Object.keys(admin[i])[0];
         if(admin[i][command] === call || call === "clearqueues" || call === "gettime" 
-            || call === "clearlogs" || call === "clearteams" || call === "croncheck")
+            || call === "clearlogs" || call === "clearteams" || call === "croncheck" || call === "updategame")
         {
             adminCommand = i;
             adminFound = true;
+            //console.log("admin command");
             break;
         }
     }
@@ -1700,6 +1816,14 @@ client.on('message', message => {
                     return;
                 }
                 removeTeam(message, args.shift().toLowerCase(), args.join(" "));
+                break;
+            case "updategame":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                console.log("updating game");
+                updateGameQueueDay(message, args.shift().toLowerCase());
                 break;
             case "addgame":
                 if(args.length < 2){
