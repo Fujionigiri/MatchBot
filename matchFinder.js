@@ -1598,7 +1598,7 @@ function scheduleStartTime() {
                         queuetime,
                         () => {
                             
-                                console.log("Running cron for open queue time, weekday = " + qweekday);
+                                console.log("Running cron for open queue time, weekday = " + qWeekday);
                                 openQueue();
                             
                         }
