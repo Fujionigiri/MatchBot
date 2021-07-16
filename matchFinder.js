@@ -199,7 +199,7 @@ function sendMessage(gameId, games) {
     //client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
                                             //+ "\nJoin by 2:30 for a match.");
     client.channels.cache.get(channel).send("The queue for " + gameName + " Friendlies is open. "
-                                            + "\nJoin by 2:30 " + day + " for a match.");
+                                            + "\nJoin by 2:30 " + getWeekday(day) + " for a match.");
 }
 
 //checks through games array to find tournaments that are currently in progress
