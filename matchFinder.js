@@ -182,6 +182,7 @@ function sendMessage(gameId, games) {
     var gamePos = 0;
     var channel = "";
     var gameName = "";
+    var day = "";
 
     console.log("Sending open queue message to " + gameId);
     for(var k = 0; k < games.length; k++)
@@ -191,13 +192,14 @@ function sendMessage(gameId, games) {
             channel = (games[k][channelKey] != "none") ? (games[k][channelKey]) : config.MAIN_CHANNEL;
             var nameKey = Object.keys(games[k])[jSonName];
             gameName = games[k][nameKey];
+            day = games[k]["weekday"];
         }
     }
 
     //client.channels.cache.get(channel).send("<@&" + coachRoleId.id + ">" + " " +  "the queue for " + gameName + " Friendlies is open. "
                                             //+ "\nJoin by 2:30 for a match.");
     client.channels.cache.get(channel).send("The queue for " + gameName + " Friendlies is open. "
-                                            + "\nJoin by 2:30 for a match.");
+                                            + "\nJoin by 2:30 " + day + " for a match.");
 }
 
 //checks through games array to find tournaments that are currently in progress
