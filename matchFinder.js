@@ -1622,7 +1622,7 @@ function scheduleStartTime() {
         var endHr="";
         var endMin="";
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
-        var qWeekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
+        var qWeekday = (games[i][qDayKey] != "none") ? (parseInt(games[i][qDayKey])) : (games[i][qDayKey]);
         var date = (games[i][dateKey] != "none") ? (parseInt(games[i][dateKey])) : (games[i][dateKey]);
         var dateMonth="";
         var dateDay="";
