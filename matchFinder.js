@@ -34,6 +34,7 @@ var daylightSavings;
 var coachRoleId;
 var scheduling = false;
 var queueing = false;
+var coachList = [];
 const jSonId = 0;
 const jSonName = 1;
 const jSonChannel = 2;
@@ -428,9 +429,15 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             if(log[gameLogPos][completeDate][key] == null) {
                 log[gameLogPos][completeDate][key] = JSON.parse("{}");
             }
+
+            if(coachList[channel]== null){
+                coachList[channel] = [];
+            }
+            coachList[channel].push(team1);
+            coachList[channel].push(team2);
             console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
             var matchSets = log[gameLogPos][completeDate][key];
-
+            console.log("List of coaches: " + coachList[channel])
             log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
@@ -485,9 +492,15 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
                         if(log[gameLogPos][completeDate][key2] == null) {
                             log[gameLogPos][completeDate][key2] = JSON.parse("{}");
                         }
+
+                        if(coachList[channel]== null){
+                            coachList[channel] = [];
+                        }
+                        coachList[channel].push(team1);
+                        coachList[channel].push(team2);
                         console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
                         var matchSets = log[gameLogPos][completeDate][key2];
-            
+                        console.log("List of coaches: " + coachList[channel]);
                         log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
                         break;
                     }
@@ -513,6 +526,81 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
         }
     }
     
+}
+
+function closeQueue() {
+    //scroll through game json and find all games with current day of the week or current date
+    day = new Date();
+    currentWeekDay = (day.getUTCHours() < 4) ? day.getUTCDay()-1: day.getUTCDay();
+    currentMonth = day.getUTCMonth() + 1;
+    currentDay =  (day.getUTCHours() < 4) ? day.getUTCDate() - 1: day.getUTCDate();
+    currentYear = day.getUTCFullYear();
+    currentMinutes = day.getUTCMinutes();
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+
+    console.log("repeating?");
+    for(var i = 0; i < games.length; i++)
+    {
+        const id = Object.keys(games[i])[jSonId];
+        const dayKey = Object.keys(games[i])[jSonQWeek];
+        const dateKey = Object.keys(games[i])[jSonDate];
+        const endTimeKey = Object.keys(games[i])[jSonEnd];
+        var endHr="";
+        var endMin="";
+        endTime = 0;
+        var currentTime = (currentMinutes < 10) ? parseInt(currentHour.toString() + "0" + currentMinutes.toString()):
+                                                    parseInt(currentHour.toString() + currentMinutes.toString());
+        var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
+        var date = (games[i][dateKey] != "none") ? (parseInt(games[i][dateKey])) : (games[i][dateKey]);
+        var dateMonth="";
+        var dateDay="";
+        var dateYear="";
+       
+        if(games[i][endTimeKey] != "none") {
+            endHr = games[i][endTimeKey].substr(0,2);
+            endMin = games[i][endTimeKey].substr(2,2);
+            endTime = parseInt(endHr + endMin);
+        }
+        if(date != "none") {
+            dateMonth = parseInt(games[i][dateKey].substr(0,2));
+            dateDay = parseInt(games[i][dateKey].substr(2,2));
+            dateYear = parseInt(games[i][dateKey].substr(4,4));
+        }
+
+        var gamePos = 0;
+        var channel = "";
+        var gameName = "";
+        var day = "";
+
+        
+        if((weekday === currentWeekDay || 
+            (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
+        {
+            console.log("current: " + currentTime + " queue end: " + endTime);
+            if(games[i][endTimeKey] != "none" && (currentTime >= endTime)) {
+                console.log("Sending open queue message to " + games[i][id]);
+                for(var k = 0; k < games.length; k++)
+                {
+                    if(games[k].id == games[i][id]){
+                        var channelKey = Object.keys(games[gamePos])[jSonChannel];
+                        channel = (games[k][channelKey] != "none") ? (games[k][channelKey]) : config.MAIN_CHANNEL;
+                        var nameKey = Object.keys(games[k])[jSonName];
+                        gameName = games[k][nameKey];
+                        day = games[k]["weekday"];
+                    }
+                }
+                var coaches = coachList[channel];
+                var idList = "";
+                console.log("coaches: " + coaches);
+                for(var j = 0; j < coachList[channel].length; j++){
+                    idList += "<@" + coaches[j] + "> ";
+                }
+                coachList[channel] = [];
+                console.log("channel content" + coachList[channel]);
+                client.channels.cache.get(channel).send(idList + " please complete this survey for today's " + gameName + " friendlies match. Teams will earn points for the completion of this survey each week.");
+            }
+        }
+    }
 }
 
 //Clear all the logs
@@ -1528,8 +1616,11 @@ function scheduleStartTime() {
         const dateKey = Object.keys(games[i])[jSonDate];
         const matchTimeKey = Object.keys(games[i])[jSonQueueEnd];
         const openQueueKey = Object.keys(games[i])[jSonQueue];
+        const stopTimeKey = Object.keys(games[i])[jSonEnd];
         var startHr="";
         var startMin="";
+        var endHr="";
+        var endMin="";
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
         var qWeekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
         var date = (games[i][dateKey] != "none") ? (parseInt(games[i][dateKey])) : (games[i][dateKey]);
@@ -1552,8 +1643,24 @@ function scheduleStartTime() {
                     startHr = sTime.toString();
                 }
             }
+            var eTime = 0;
+            if(parseInt(games[i][stopTimeKey].substr(0,2)) >= 20) {
+                eTime = (parseInt(games[i][stopTimeKey].substr(0,2)) - 20)
+                endHr = "0" + eTime.toString();
+            }
+            else{
+                eTime = (parseInt(games[i][stopTimeKey].substr(0,2)) + 4)
+                if(eTime < 10){
+                    endHr = "0" + eTime.toString();
+                }
+                else {
+                    endHr = eTime.toString();
+                }
+            }
             startMin = games[i][matchTimeKey].substr(2,2);
+            endMin = games[i][stopTimeKey].substr(2,2);
             console.log(games[i].id + " time: " + startHr + " " + startMin);
+            console.log(games[i].id + " end time: " + endHr + " " + endMin);
         }
 
         //get queue open time
@@ -1592,7 +1699,7 @@ function scheduleStartTime() {
         {
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + qWeekday;
             if(queueList.indexOf(queuetime) < 0){
-                console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
+                console.log("Setting this cron for open queue: " + openHr + ":" + openMin + " weekday: " + qWeekday);
                 queueList.push(queuetime);
                 cronJobs.push(
                     new cron.schedule(
@@ -1606,7 +1713,7 @@ function scheduleStartTime() {
                     ), undefined, true, "UTC"
                 );
             }
-            console.log("Setting this cron for: " + startHr + ":" + startMin);
+            console.log("Setting this cron for: " + startHr + ":" + startMin + " Weekday: " + weekday);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
                 new cron.schedule(
@@ -1620,13 +1727,27 @@ function scheduleStartTime() {
                     }
                 ), undefined, true, "UTC"
             );
+            console.log("Setting the stop time for: " + endHr + ":" + endMin + " Weekday: " + weekday);
+            var time = '00 ' + endMin + ' ' + endHr + ' * * ' + weekday;
+            cronJobs.push(
+                new cron.schedule(
+                    time,
+                    () => {
+                        if(!scheduling){
+                            console.log("Running cron for set time, weekday = " + weekday);
+                            scheduling = true;
+                            closeQueue();
+                        }
+                    }
+                ), undefined, true, "UTC"
+            );
             //console.log("Schedule set for " + games[i][id]);
         }
         else if(games[i][matchTimeKey] != "none")
         {
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + qWeekday;
             if(queueList.indexOf(queuetime) < 0){
-                console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
+                console.log("Setting this cron for open queue: " + openHr + ":" + openMin + " weekday: " + qWeekday);
                 queueList.push(queuetime);
                 cronJobs.push(
                     new cron.schedule(
@@ -1640,7 +1761,7 @@ function scheduleStartTime() {
                     ), undefined, true, "UTC"
                 );
             }
-            console.log("Setting this cron for: " + startHr + ":" + startMin);
+            console.log("Setting this cron for: " + startHr + ":" + startMin + " Weekday: " + weekday);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
                 new cron.schedule(
@@ -1650,6 +1771,20 @@ function scheduleStartTime() {
                             console.log("Running cron for set time, weekday = " + weekday);
                             scheduling = true;
                             getCurrentMatches();
+                        }
+                    }
+                ), undefined, true, "UTC"
+            );
+            console.log("Setting the stop time for: " + endHr + ":" + endMin + " Weekday: " + weekday);
+            var time = '00 ' + endMin + ' ' + endHr + ' * * ' + weekday;
+            cronJobs.push(
+                new cron.schedule(
+                    time,
+                    () => {
+                        if(!scheduling){
+                            console.log("Running cron for set time, weekday = " + weekday);
+                            scheduling = true;
+                            closeQueue();
                         }
                     }
                 ), undefined, true, "UTC"
@@ -1775,7 +1910,7 @@ client.on('message', message => {
     {
         command = Object.keys(admin[i])[0];
         if(admin[i][command] === call || call === "clearqueues" || call === "gettime" 
-            || call === "clearlogs" || call === "clearteams" || call === "croncheck" || call === "updategame")
+            || call === "clearlogs" || call === "clearteams" || call === "croncheck" || call === "updategame" || call === "close")
         {
             adminCommand = i;
             adminFound = true;
@@ -1980,6 +2115,17 @@ client.on('message', message => {
                 }
                
                 testCron(args.shift().toLowerCase(), args.shift(), args.join(" "));
+                break;
+            case "close":
+                if(args.length < 1){
+                    message.channel.send("```diff\n- Invalid number of arguments.```");
+                    return;
+                }
+                if(args.join(" ") === "admin"){
+                    closeQueue();
+                }
+                else
+                    message.channel.send("```diff\n- Invalid password.```");
                 break;
         }
     }
