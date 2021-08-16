@@ -1126,7 +1126,7 @@ function addQueueTime(message, id, queueTime, queueEnd) {
         else
         {
             message.channel.send("```diff\n+ " + id + " queue time has been added/updated.```");
-            scheduleStartTime();
+            clearCrons();
         }
     });
 }
@@ -1172,7 +1172,7 @@ function addTime(message, id, start, end) {
         else
         {
             message.channel.send("```diff\n+ " + id + " competition time has been added/updated.```");
-            scheduleStartTime();
+            clearCrons();
         }
     });
 }
@@ -1587,9 +1587,42 @@ function scheduleStartTime() {
         console.log("currentweekday: " + currentWeekDay);
         console.log(games[i].id + " game time: " + games[i][matchTimeKey]);
         //add cron job to release matches at game's specified start time
-        if((qWeekday === currentWeekDay || 
-            (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)) 
+        if((currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)
             && games[i][matchTimeKey] != "none")
+        {
+            var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + qWeekday;
+            if(queueList.indexOf(queuetime) < 0){
+                console.log("Setting this cron for open queue: " + openHr + ":" + openMin);
+                queueList.push(queuetime);
+                cronJobs.push(
+                    new cron.schedule(
+                        queuetime,
+                        () => {
+                            
+                                console.log("Running cron for open queue time, weekday = " + qWeekday);
+                                openQueue();
+                            
+                        }
+                    ), undefined, true, "UTC"
+                );
+            }
+            console.log("Setting this cron for: " + startHr + ":" + startMin);
+            var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
+            cronJobs.push(
+                new cron.schedule(
+                    time,
+                    () => {
+                        if(!scheduling){
+                            console.log("Running cron for set time, weekday = " + weekday);
+                            scheduling = true;
+                            getCurrentMatches();
+                        }
+                    }
+                ), undefined, true, "UTC"
+            );
+            //console.log("Schedule set for " + games[i][id]);
+        }
+        else if(games[i][matchTimeKey] != "none")
         {
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + qWeekday;
             if(queueList.indexOf(queuetime) < 0){
