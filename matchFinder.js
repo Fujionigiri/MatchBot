@@ -589,21 +589,28 @@ function closeQueue() {
                         day = games[k]["weekday"];
                     }
                 }
-                var coaches = coachList[channel];
-                var idList = "";
-                console.log("coaches: " + coaches);
-                if(coachList[channel].length > 0){
-                    for(var j = 0; j < coachList[channel].length; j++){
-                        idList += "<@" + coaches[j] + "> ";
+                if(coachList[channel] != null){
+                    var coaches = coachList[channel];
+                    var idList = "";
+                    console.log("coaches: " + coaches);
+                    if(coachList[channel].length > 0){
+                        for(var j = 0; j < coachList[channel].length; j++){
+                            idList += "<@" + coaches[j] + "> ";
+                        }
+                        coachList[channel] = [];
+                        console.log("channel content" + coachList[channel]);
+                        client.channels.cache.get(channel).send(idList + " please complete this survey for today's " + gameName + " friendlies match. Teams will earn points for the completion of this survey each week.");
                     }
-                    coachList[channel] = [];
-                    console.log("channel content" + coachList[channel]);
-                    client.channels.cache.get(channel).send(idList + " please complete this survey for today's " + gameName + " friendlies match. Teams will earn points for the completion of this survey each week.");
+                    else{
+                        var channelID = config.MAIN_CHANNEL;
+                        client.channels.cache.get(channelID).send("```diff\n- No matches issued for " + gameName + ".```");
+                    }
                 }
                 else{
                     var channelID = config.MAIN_CHANNEL;
                     client.channels.cache.get(channelID).send("```diff\n- No matches issued for " + gameName + ".```");
                 }
+                
             }
         }
     }
