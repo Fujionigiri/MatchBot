@@ -576,9 +576,9 @@ function closeQueue() {
         if((weekday === currentWeekDay || 
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
         {
-            console.log("current: " + currentTime + " queue end: " + endTime);
+            console.log("current: " + currentTime + " queue end: " + endTime + " currentweekday: " + currentWeekDay + " weekday: " + weekday);
             if(games[i][endTimeKey] != "none" && (currentTime >= endTime)) {
-                console.log("Sending open queue message to " + games[i][id]);
+                console.log("Sending close queue message to " + games[i][id]);
                 for(var k = 0; k < games.length; k++)
                 {
                     if(games[k].id == games[i][id]){
