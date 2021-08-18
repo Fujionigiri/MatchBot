@@ -542,7 +542,7 @@ function closeQueue() {
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
-        const dayKey = Object.keys(games[i])[jSonQWeek];
+        const dayKey = Object.keys(games[i])[jSonWeek];
         const dateKey = Object.keys(games[i])[jSonDate];
         const endTimeKey = Object.keys(games[i])[jSonEnd];
         var endHr="";
