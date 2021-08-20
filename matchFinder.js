@@ -1279,6 +1279,18 @@ function addTime(message, id, start, end) {
     });
 }
 
+function printGames(message){
+    var output = "```md";
+    output += ("\n# Games");
+    //Lists all registered games in games.json
+    for(var i = 0; i < games.length; i++)
+    {
+        output += "\n- < " + games[i]["id"] + " > " + games[i]["name"];
+    }
+    output += "\n```";
+    message.channel.send(output);
+}
+
 //Outputs game details to discord, retrieved from games.json
 function printDetails(message, id) {
     var index = games.findIndex(a=> a.id === id);
@@ -1679,8 +1691,7 @@ function scheduleStartTime() {
             }
             startMin = games[i][matchTimeKey].substr(2,2);
             endMin = games[i][stopTimeKey].substr(2,2);
-            console.log(games[i].id + " time: " + startHr + " " + startMin);
-            console.log(games[i].id + " end time: " + endHr + " " + endMin);
+            console.log(games[i].id + " time: " + startHr + " " + startMin + " end time: " + endHr + " " + endMin);
         }
 
         //get queue open time
@@ -1709,17 +1720,15 @@ function scheduleStartTime() {
             dateYear = parseInt(games[i][dateKey].substr(4,4));
             console.log("the date is " + dateMonth + " " + dateDay + " " + dateYear);
         }   
-        console.log(games[i].id + " Queue Weekday: " + qWeekday);
-        console.log(games[i].id + " Weekday: " + weekday);
-        console.log("currentweekday: " + currentWeekDay);
-        console.log(games[i].id + " game time: " + games[i][matchTimeKey]);
+        console.log(games[i].id + " Queue Weekday: " + qWeekday + " Weekday: " + weekday 
+                                + " currentweekday: " + currentWeekDay + " game time: " + games[i][matchTimeKey]);
         //add cron job to release matches at game's specified start time
         if((currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)
             && games[i][matchTimeKey] != "none")
         {
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + qWeekday;
             if(queueList.indexOf(queuetime) < 0){
-                console.log("Setting this cron for open queue: " + openHr + ":" + openMin + " weekday: " + qWeekday);
+                console.log("Setting " + games[i].id + " cron for open queue: " + openHr + ":" + openMin + " weekday: " + qWeekday);
                 queueList.push(queuetime);
                 cronJobs.push(
                     new cron.schedule(
@@ -1733,7 +1742,7 @@ function scheduleStartTime() {
                     ), undefined, true, "UTC"
                 );
             }
-            console.log("Setting this cron for: " + startHr + ":" + startMin + " Weekday: " + weekday);
+            console.log("Setting " + games[i].id + " cron for: " + startHr + ":" + startMin + " Weekday: " + weekday);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
                 new cron.schedule(
@@ -1747,7 +1756,7 @@ function scheduleStartTime() {
                     }
                 ), undefined, true, "UTC"
             );
-            console.log("Setting the stop time for: " + endHr + ":" + endMin + " Weekday: " + weekday);
+            console.log("Setting " + games[i].id + "  stop time for: " + endHr + ":" + endMin + " Weekday: " + weekday);
             var time = '00 ' + endMin + ' ' + endHr + ' * * ' + weekday;
             cronJobs.push(
                 new cron.schedule(
@@ -1767,7 +1776,7 @@ function scheduleStartTime() {
         {
             var queuetime = '00 ' + openMin + ' ' + openHr + ' * * ' + qWeekday;
             if(queueList.indexOf(queuetime) < 0){
-                console.log("Setting this cron for open queue: " + openHr + ":" + openMin + " weekday: " + qWeekday);
+                console.log("Setting " + games[i].id + " cron for open queue: " + openHr + ":" + openMin + " weekday: " + qWeekday);
                 queueList.push(queuetime);
                 cronJobs.push(
                     new cron.schedule(
@@ -1781,7 +1790,7 @@ function scheduleStartTime() {
                     ), undefined, true, "UTC"
                 );
             }
-            console.log("Setting this cron for: " + startHr + ":" + startMin + " Weekday: " + weekday);
+            console.log("Setting " + games[i].id + " cron for: " + startHr + ":" + startMin + " Weekday: " + weekday);
             var time = '00 ' + startMin + ' ' + startHr + ' * * ' + weekday;
             cronJobs.push(
                 new cron.schedule(
@@ -1795,7 +1804,7 @@ function scheduleStartTime() {
                     }
                 ), undefined, true, "UTC"
             );
-            console.log("Setting the stop time for: " + endHr + ":" + endMin + " Weekday: " + weekday);
+            console.log("Setting " + games[i].id + " stop time for: " + endHr + ":" + endMin + " Weekday: " + weekday);
             var time = '00 ' + endMin + ' ' + endHr + ' * * ' + weekday;
             cronJobs.push(
                 new cron.schedule(
@@ -1970,6 +1979,9 @@ client.on('message', message => {
                     return;
                 }
                 addDefault(message, args.join(" "));
+                break;
+            case "games":
+                printGames(message);
                 break;
             case "log":
                 if(args.length < 2){
