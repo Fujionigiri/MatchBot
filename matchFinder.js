@@ -1959,7 +1959,7 @@ client.on('message', message => {
         }
         adminMenu(message);
     }
-    else if(adminFound && args.length > 0) { //checks if user has admin privileges, if does processes command
+    else if(adminFound && args.length >= 0) { //checks if user has admin privileges, if does processes command
         if (!hasPermission(message, "Botmom"))
         {
             message.channel.send("```diff\n- You must be an admin to use admin commands.```");

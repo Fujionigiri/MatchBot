@@ -12,7 +12,7 @@
     {
         "id": "games",
         "command": "games",
-        "des": "Lists all the game currently added"
+        "des": "Lists all the games currently added"
     },
     {
         "id": "log",
