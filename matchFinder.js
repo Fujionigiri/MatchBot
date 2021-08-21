@@ -1,3 +1,6 @@
+//fix problem with the scheduling variable. Currently when teams join after start time, the scheduling variable
+//prevents the matches from being released line 447
+
 //discord module require
 const Discord = require('discord.js');
 
@@ -240,7 +243,7 @@ function getCurrentMatches() {
         var endHr="";
         var endMin="";
         endTime = 0;
-        console.log("Current matches for: " + games[i][id]);
+        //console.log("Current matches for: " + games[i][id]);
         var currentTime = (currentMinutes < 10) ? parseInt(currentHour.toString() + "0" + currentMinutes.toString()):
                                                     parseInt(currentHour.toString() + currentMinutes.toString());
         var weekday = (games[i][dayKey] != "none") ? (parseInt(games[i][dayKey])) : (games[i][dayKey]);
@@ -249,19 +252,19 @@ function getCurrentMatches() {
         var dateDay="";
         var dateYear="";
         if(games[i][queueEndTimeKey] != "none") {
-            console.log("queue end: " + games[i][queueEndTimeKey].substr(0,2));
+            //console.log("queue end: " + games[i][queueEndTimeKey].substr(0,2));
             queueEndHr = games[i][queueEndTimeKey].substr(0,2);
             queueEndMin = games[i][queueEndTimeKey].substr(2,2);
             queueEndTime = parseInt(queueEndHr + queueEndMin);
         }
         if(games[i][startTimeKey] != "none") {
-            console.log("start time: " + games[i][startTimeKey].substr(0,2));
+            //console.log("start time: " + games[i][startTimeKey].substr(0,2));
             startHr = games[i][startTimeKey].substr(0,2);
             startMin = games[i][startTimeKey].substr(2,2);
             startTime = parseInt(startHr + startMin);
         }
         if(games[i][endTimeKey] != "none") {
-            console.log("end time: " + games[i][endTimeKey].substr(0,2))
+            //console.log("end time: " + games[i][endTimeKey].substr(0,2))
             endHr = games[i][endTimeKey].substr(0,2);
             endMin = games[i][endTimeKey].substr(2,2);
             endTime = parseInt(endHr + endMin);
@@ -599,7 +602,7 @@ function closeQueue() {
                         }
                         coachList[channel] = [];
                         console.log("channel content" + coachList[channel]);
-                        client.channels.cache.get(channel).send(idList + " please complete this survey for today's " + gameName + " friendlies match. Teams will earn points for the completion of this survey each week.");
+                        client.channels.cache.get(channel).send(idList + " please complete this survey for today's " + gameName + " friendlies match. Teams will earn points for the completion of this survey each week.\nhttps://docs.google.com/forms/d/e/1FAIpQLSdET78acLN8yjNpxeBG6cVz9SaTkwCjLXwsrqaFKl12ZlvJeg/viewform");
                     }
                     else{
                         var channelID = config.MAIN_CHANNEL;
@@ -1516,28 +1519,28 @@ function addToQueue(message, id, game, numTeams) {
     //One or more of the conditions have not been met, output queue window to clarify availability to user
     else
     {
-        var messageTxt = (queueWeekday === "none" && queueTime != "none" && endTime != "none") ? ("```diff\n- 1"+ gameName + " queue is open on " 
+        var messageTxt = (queueWeekday === "none" && queueTime != "none" && endTime != "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + " from " + queueTime + " to " + queueEndTime + "```") :
 
-                    (queueWeekday === "none" && queueTime === "none" && endTime === "none") ? ("```diff\n- 2"+ gameName + " queue is open on " 
+                    (queueWeekday === "none" && queueTime === "none" && endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + "```") :
                     
-                    (queueWeekday === "none" && queueTime === "none") ? ("```diff\n- 3"+ gameName + " queue is open on " 
+                    (queueWeekday === "none" && queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + " until " + queueEndTime + "```") :
 
-                    (queueWeekday === "none" && endTime === "none") ? ("```diff\n- 4"+ gameName + " queue is open on " 
+                    (queueWeekday === "none" && endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + dateMonth + "-" + dateDay + "-" + dateYear + " starting at " + queueTime + "```") :
 
-                    (endTime === "none" && queueTime === "none") ? ("```diff\n- 5"+ gameName + " queue is open on " 
+                    (endTime === "none" && queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + getWeekday(queueWeekday.toString()) + "s```"):
 
-                    (queueTime === "none") ? ("```diff\n- 6"+ gameName + " queue is open on " 
+                    (queueTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + getWeekday(queueWeekday.toString()) + "s until " + queueEndTime + "```") :
 
-                    (endTime === "none") ? ("```diff\n- 7"+ gameName + " queue is open on " 
+                    (endTime === "none") ? ("```diff\n- "+ gameName + " queue is open on " 
                     + getWeekday(queueWeekday.toString()) + "s starting at " + queueTime + "```"):
 
-                    ("```diff\n- 8"+ gameName + " queue is open on " 
+                    ("```diff\n- "+ gameName + " queue is open on " 
                     + getWeekday(queueWeekday.toString()) + "s from " + queueTime + " to " + queueEndTime +  "```");
 
         message.channel.send(messageTxt);
@@ -1575,7 +1578,7 @@ client.on('ready', (evt) => {
         //set queues for today
     });
     scheduledMessage.start()
-    let scheduledCrons = new cron.schedule('00 00 * * * 0', () => {
+    let scheduledCrons = new cron.schedule('00 00 08 * * *', () => {
     // This runs every day at 04:00:00 to set tournament start schedule
         clearCrons();
     });
