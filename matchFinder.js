@@ -423,9 +423,18 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             team2Sets = teamInfoLog[team2InfoPos][gameId];
             teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
             teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key;
-
-            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-            client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key + " for " + gameName + ".");
+            var order = Math.floor(Math.random() * 2);
+            if(order == 0){
+                //console.log("random count0: " + order);
+                 //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                client.channels.cache.get(channel).send("Home: <@" + team1 + ">" + " " +  "Away: <@" + team2 + "> set up " + key + " for " + gameName + ".");
+            }
+            else{
+                //console.log("random count1: " + order);
+                 //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                client.channels.cache.get(channel).send("Home: <@" + team2 + ">" + " " +  "Away: <@" + team1 + "> set up " + key + " for " + gameName + ".");
+            }
+           
             if(log[gameLogPos][completeDate] == null) {
                 log[gameLogPos][completeDate] = JSON.parse("{}");
             }
@@ -486,9 +495,18 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             
                         delete participants[gamePos][key][team1];
                         delete participants[gamePos][key2][team2];
-            
-                        //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-                        client.channels.cache.get(channel).send("<@" + team1 + ">" + " " +  "<@" + team2 + "> set up " + key2 + " for " + gameName + ".");
+                        var order = Math.floor(Math.random() * 2);
+                        if(order == 0){
+                            //console.log("random count0: " + order);
+                            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                            client.channels.cache.get(channel).send("Home: <@" + team1 + ">" + " " +  "Away: <@" + team2 + "> set up " + key2 + " for " + gameName + ".");
+                        }
+                        else{
+                            //console.log("random count1: " + order);
+                            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                            client.channels.cache.get(channel).send("Home: <@" + team2 + ">" + " " +  "Away: <@" + team1 + "> set up " + key2 + " for " + gameName + ".");
+                        }
+                       
                         if(log[gameLogPos][completeDate] == null) {
                             log[gameLogPos][completeDate] = JSON.parse("{}");
                         }
@@ -1571,10 +1589,9 @@ client.on('ready', (evt) => {
     games = JSON.parse(fs.readFileSync(path.join(__dirname + '/data/games.json'), 'utf-8'));
     numGames = games.length;
     clearCrons();
-    let scheduledMessage = new cron.schedule('00 00 08 * * 0', () => {
-    // This runs every Sunday at 04:00:00 to set tournament start schedule
+    let scheduledMessage = new cron.schedule('00 00 07 * * 0', () => {
+    // This runs every Sunday at 03:00:00 to set tournament start schedule
         clearQueues();
-        clearCrons();
         //set queues for today
     });
     scheduledMessage.start()
@@ -1766,7 +1783,7 @@ function scheduleStartTime() {
                     time,
                     () => {
                         if(!scheduling){
-                            console.log("Running cron for set time, weekday = " + weekday);
+                            console.log("Running cron for set stop time, weekday = " + weekday);
                             scheduling = true;
                             closeQueue();
                         }
@@ -1813,8 +1830,9 @@ function scheduleStartTime() {
                 new cron.schedule(
                     time,
                     () => {
+                        console.log("scheduling: " + scheduling);
                         if(!scheduling){
-                            console.log("Running cron for set time, weekday = " + weekday);
+                            console.log("Running cron for set stop time, weekday = " + weekday);
                             scheduling = true;
                             closeQueue();
                         }
