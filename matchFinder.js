@@ -453,81 +453,82 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
         }
     }
-    if(scheduling){
-        //go back through and match teams with teams of other sizes
-        for(var i = Object.keys(participants[gamePos]).length - 1; i > 1; i--)
+    
+    //go back through and match teams with teams of other sizes
+    for(var i = Object.keys(participants[gamePos]).length - 1; i > 1; i--)
+    {
+        const key = Object.keys(participants[gamePos])[i];
+        if(Object.keys(participants[gamePos][key]).length > 0)
         {
-            const key = Object.keys(participants[gamePos])[i];
-            if(Object.keys(participants[gamePos][key]).length > 0)
-            {
-                for(var j = i - 1; j > 0; j--){
-                    const key2 = Object.keys(participants[gamePos])[j];
-                    if( Object.keys(participants[gamePos][key2]).length > 0){
-                        let team1 = Object.keys(participants[gamePos][key])[0];
-                        let team1Name = participants[gamePos][key][team1];
-                        let team2 = Object.keys(participants[gamePos][key2])[0];
-                        let team2Name = participants[gamePos][key2][team2]
-            
-                        var team1InfoPos = 0;
-                        var team2InfoPos = 0;
-            
-                        for(var g = 0; g < teamInfoLog.length; g++)
-                        {
-                            if(teamInfoLog[g].id == team1){
-                                team1InfoPos = g;
-                            }
-                            else if(teamInfoLog[g].id == team2){
-                                team2InfoPos = g;
-                            }
+            for(var j = i - 1; j > 0; j--){
+                const key2 = Object.keys(participants[gamePos])[j];
+                if( Object.keys(participants[gamePos][key2]).length > 0){
+                    let team1 = Object.keys(participants[gamePos][key])[0];
+                    let team1Name = participants[gamePos][key][team1];
+                    let team2 = Object.keys(participants[gamePos][key2])[0];
+                    let team2Name = participants[gamePos][key2][team2]
+        
+                    var team1InfoPos = 0;
+                    var team2InfoPos = 0;
+        
+                    for(var g = 0; g < teamInfoLog.length; g++)
+                    {
+                        if(teamInfoLog[g].id == team1){
+                            team1InfoPos = g;
                         }
-            
-                        if(teamInfoLog[team1InfoPos][gameId] == null){
-                            teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
+                        else if(teamInfoLog[g].id == team2){
+                            team2InfoPos = g;
                         }
-                        if(teamInfoLog[team2InfoPos][gameId] == null){
-                            teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
-                        }
-                    
-                        team1Sets = teamInfoLog[team1InfoPos][gameId];
-                        team2Sets = teamInfoLog[team2InfoPos][gameId];
-                        teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
-                        teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key; 
-            
-                        delete participants[gamePos][key][team1];
-                        delete participants[gamePos][key2][team2];
-                        var order = Math.floor(Math.random() * 2);
-                        if(order == 0){
-                            //console.log("random count0: " + order);
-                            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-                            client.channels.cache.get(channel).send("Home: <@" + team1 + ">" + " " +  "Away: <@" + team2 + "> set up " + key2 + " for " + gameName + ".");
-                        }
-                        else{
-                            //console.log("random count1: " + order);
-                            //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
-                            client.channels.cache.get(channel).send("Home: <@" + team2 + ">" + " " +  "Away: <@" + team1 + "> set up " + key2 + " for " + gameName + ".");
-                        }
-                       
-                        if(log[gameLogPos][completeDate] == null) {
-                            log[gameLogPos][completeDate] = JSON.parse("{}");
-                        }
-                        if(log[gameLogPos][completeDate][key2] == null) {
-                            log[gameLogPos][completeDate][key2] = JSON.parse("{}");
-                        }
-
-                        if(coachList[channel]== null){
-                            coachList[channel] = [];
-                        }
-                        coachList[channel].push(team1);
-                        coachList[channel].push(team2);
-                        console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
-                        var matchSets = log[gameLogPos][completeDate][key2];
-                        console.log("List of coaches: " + coachList[channel]);
-                        log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
-                        break;
                     }
+        
+                    if(teamInfoLog[team1InfoPos][gameId] == null){
+                        teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
+                    }
+                    if(teamInfoLog[team2InfoPos][gameId] == null){
+                        teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
+                    }
+                
+                    team1Sets = teamInfoLog[team1InfoPos][gameId];
+                    team2Sets = teamInfoLog[team2InfoPos][gameId];
+                    teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + key;
+                    teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + key; 
+        
+                    delete participants[gamePos][key][team1];
+                    delete participants[gamePos][key2][team2];
+                    var order = Math.floor(Math.random() * 2);
+                    if(order == 0){
+                        //console.log("random count0: " + order);
+                        //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                        client.channels.cache.get(channel).send("Home: <@" + team1 + ">" + " " +  "Away: <@" + team2 + "> set up " + key2 + " for " + gameName + ".");
+                    }
+                    else{
+                        //console.log("random count1: " + order);
+                        //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                        client.channels.cache.get(channel).send("Home: <@" + team2 + ">" + " " +  "Away: <@" + team1 + "> set up " + key2 + " for " + gameName + ".");
+                    }
+                    
+                    if(log[gameLogPos][completeDate] == null) {
+                        log[gameLogPos][completeDate] = JSON.parse("{}");
+                    }
+                    if(log[gameLogPos][completeDate][key2] == null) {
+                        log[gameLogPos][completeDate][key2] = JSON.parse("{}");
+                    }
+
+                    if(coachList[channel]== null){
+                        coachList[channel] = [];
+                    }
+                    coachList[channel].push(team1);
+                    coachList[channel].push(team2);
+                    console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+                    var matchSets = log[gameLogPos][completeDate][key2];
+                    console.log("List of coaches: " + coachList[channel]);
+                    log[gameLogPos][completeDate][key2]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name;
+                    break;
                 }
             }
         }
+    }
+    if(scheduling){
         //go back through queues and remove anyone that doesn't have match w/message to requeue
         for(var i = Object.keys(participants[gamePos]).length-1; i > 0; i--)
         {
@@ -545,6 +546,7 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
 
             }
         }
+        scheduling = false;
     }
     
 }
@@ -559,7 +561,7 @@ function closeQueue() {
     currentMinutes = day.getUTCMinutes();
     currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
 
-    console.log("repeating?");
+    console.log("scheduling? " + scheduling);
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
