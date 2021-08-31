@@ -177,6 +177,7 @@ function openQueue() {
             console.log("current: " + currentTime + " queue start: " + queueStartTime);
             if(games[i][queueStartTimeKey] != "none" && (currentTime == queueStartTime)) {
                 sendMessage(games[i][id], games);
+                scheduling = false;
             }
         }
     }
@@ -1964,10 +1965,12 @@ client.on('message', message => {
         if(admin[i][command] === call || call === "clearqueues" || call === "gettime" 
             || call === "clearlogs" || call === "clearteams" || call === "croncheck" || call === "updategame" || call === "close")
         {
-            adminCommand = i;
-            adminFound = true;
-            //console.log("admin command");
-            break;
+            if(call != "list"){
+                adminCommand = i;
+                adminFound = true;
+                //console.log("admin command");
+                break;
+            }   
         }
     }
     
