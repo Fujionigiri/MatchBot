@@ -280,10 +280,10 @@ function getCurrentMatches() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear)))
         {
             if(games[i][queueEndTimeKey] != "none" && (currentTime >= queueEndTime && currentTime < startTime)) {
-                setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
+                setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, true);
             }
             else if (games[i][startTimeKey] != "none" && (currentTime >= startTime && currentTime <= endTime)) {
-                setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
+                setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, false);
             }
         }
         //if start time hasn't been set the matches are released at noon
@@ -291,14 +291,14 @@ function getCurrentMatches() {
             (currentMonth == dateMonth && currentDay == dateDay && currentYear == dateYear))
              && games[i][startTimeKey] === "none" && games[i][queueEndTimeKey] === "none")
         {
-            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
+            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, false);
         }
         //if no date or day of week has been set then adds cron job as specified game start time
         else if(weekday === "none" && date === "none" && games[i][queueEndTime] != "none") {
-            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
+            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, false);
         }
         else if(weekday === "none" && date === "none" && games[i][queueEndTime] === "none") {
-            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog);
+            setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, false);
         }
     }
     fs.writeFile(path.join(__dirname + '/data/matches.json'), JSON.stringify(participants, null, 4), (err) =>
@@ -334,7 +334,7 @@ function getCurrentMatches() {
 }
 
 //Send out match notifications
-function setMatches(gameId, participants, completeDate, games, log, teamInfoLog) {
+function setMatches(gameId, participants, completeDate, games, log, teamInfoLog, releaseAll) {
     var gamePos = 0;
     var channel = "";
     var gameName = "";
@@ -529,7 +529,7 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog)
             }
         }
     }
-    if(scheduling){
+    if(releaseAll){
         //go back through queues and remove anyone that doesn't have match w/message to requeue
         for(var i = Object.keys(participants[gamePos]).length-1; i > 0; i--)
         {
