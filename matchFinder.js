@@ -281,6 +281,7 @@ function getCurrentMatches() {
         {
             if(games[i][queueEndTimeKey] != "none" && (currentTime >= queueEndTime && currentTime < startTime)) {
                 setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, true);
+                console.log("setting matches for " + games[i][id]);
             }
             else if (games[i][startTimeKey] != "none" && (currentTime >= startTime && currentTime <= endTime)) {
                 setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, false);
