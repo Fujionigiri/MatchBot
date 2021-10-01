@@ -217,7 +217,7 @@ function getCurrentMatches() {
 
     var completeDate = (currentMonth < 10) ? (currentDay < 10 ? "0" + currentMonth.toString() + "0" + currentDay.toString() + currentYear.toString()
                                                                 : "0" + currentMonth.toString() + currentDay.toString() + currentYear.toString())
-                                                                : currentMonth.toString() + currentDay.toLowerCase() + currentYear.toString();
+                                                                : currentMonth.toString() + currentDay.toString() + currentYear.toString();
     var channelID = config.MAIN_CHANNEL;
     //scroll through game json and find all games with current day of the week or current date
     day = new Date();
@@ -281,7 +281,7 @@ function getCurrentMatches() {
         {
             if(games[i][queueEndTimeKey] != "none" && (currentTime >= queueEndTime && currentTime < startTime)) {
                 setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, true);
-                console.log("setting matches for " + games[i][id]);
+                console.log("calling to set matches for " + games[i][id]);
             }
             else if (games[i][startTimeKey] != "none" && (currentTime >= startTime && currentTime <= endTime)) {
                 setMatches(games[i][id], participants, completeDate, games, log, teamInfoLog, false);
