@@ -33,7 +33,7 @@ var currentMonth;
 var currentYear;
 var currentHour;
 var currentMinutes;
-var daylightSavings;
+var daylightSavings = 4;
 var coachRoleId;
 var scheduling = false;
 var queueing = false;
@@ -123,7 +123,7 @@ function openQueue() {
     currentDay =  (day.getUTCHours() < 4) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
-    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - daylightSavings + 24 : day.getUTCHours() - daylightSavings;
 
     for(var i = 0; i < games.length; i++)
     {
@@ -226,7 +226,7 @@ function getCurrentMatches() {
     currentDay =  (day.getUTCHours() < 4) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
-    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - daylightSavings + 24 : day.getUTCHours() - daylightSavings;
     for(var i = 0; i < games.length; i++)
     {
         const id = Object.keys(games[i])[jSonId];
@@ -363,6 +363,127 @@ function setMatches(gameId, participants, completeDate, games, log, teamInfoLog,
         if(log[j].id == gameId)
         {
             gameLogPos = j;
+        }
+    }
+
+    console.log("game id: " + gameId);
+
+    if(gameId === "mkart")
+    {
+        console.log("this is mario kart");
+        const key = Object.keys(participants[gamePos])[1];
+        
+        var teams = participants[gamePos][key];
+
+        while (Object.keys(participants[gamePos][key]).length > 2)
+        {
+            console.log("there are more than 2 teams " + key);
+            var team1Pos = Math.floor(Math.random() * Object.keys(participants[gamePos][key]).length);
+            let team1 = Object.keys(participants[gamePos][key])[team1Pos];
+            let team1Name = participants[gamePos][key][team1];
+            delete participants[gamePos][key][team1];
+            var team2Pos = Math.floor(Math.random() * Object.keys(teams).length)
+            let team2 = Object.keys(participants[gamePos][key])[team2Pos];
+            let team2Name = participants[gamePos][key][team2]
+            delete participants[gamePos][key][team2];
+            var team3Pos = Math.floor(Math.random() * Object.keys(teams).length)
+            let team3 = Object.keys(participants[gamePos][key])[team3Pos];
+            let team3Name = participants[gamePos][key][team3]
+            delete participants[gamePos][key][team3];
+
+            var team1InfoPos = 0;
+            var team2InfoPos = 0;
+            var team3InfoPos = 0;
+            var game1Pos = -1;
+            var game2Pos = -1;
+            var game3Pos = -1;
+            for(var g = 0; g < teamInfoLog.length; g++)
+            {
+                if(teamInfoLog[g].id == team1){
+                    team1InfoPos = g;
+                }
+                else if(teamInfoLog[g].id == team2){
+                    team2InfoPos = g;
+                }
+                else if(teamInfoLog[g].id == team3){
+                    team3InfoPos = g;
+                }
+            }
+
+            if(teamInfoLog[team1InfoPos][gameId] == null){
+                teamInfoLog[team1InfoPos][gameId] = JSON.parse("{}");
+            }
+            if(teamInfoLog[team2InfoPos][gameId] == null){
+                teamInfoLog[team2InfoPos][gameId] = JSON.parse("{}");
+            }
+            if(teamInfoLog[team3InfoPos][gameId] == null){
+                teamInfoLog[team3InfoPos][gameId] = JSON.parse("{}");
+            }
+            
+            for(var g = 0; g < Object.keys(teamInfoLog[team1InfoPos]).length; g++)
+            {
+                if(Object.keys(teamInfoLog[team1InfoPos])[g] === gameId){
+                    game1Pos = g;
+                    break;
+                }
+            }
+
+            for(var g = 0; g < Object.keys(teamInfoLog[team2InfoPos]).length; g++)
+            {
+                if(Object.keys(teamInfoLog[team2InfoPos])[g] === gameId){
+                    game2Pos = g;
+                    break;
+                }
+            }
+
+            for(var g = 0; g < Object.keys(teamInfoLog[team3InfoPos]).length; g++)
+            {
+                if(Object.keys(teamInfoLog[team3InfoPos])[g] === gameId){
+                    game3Pos = g;
+                    break;
+                }
+            }
+           
+            team1Sets = teamInfoLog[team1InfoPos][gameId];
+            team2Sets = teamInfoLog[team2InfoPos][gameId];
+            team3Sets = teamInfoLog[team3InfoPos][gameId];
+            teamInfoLog[team1InfoPos][gameId]["match" + Object.keys(team1Sets).length] = team2Name + " " + team3Name + " " + key;
+            teamInfoLog[team2InfoPos][gameId]["match" + Object.keys(team2Sets).length] = team1Name + " " + team3Name + " " + key;
+            teamInfoLog[team3InfoPos][gameId]["match" + Object.keys(team3Sets).length] = team1Name + " " + team2Name + " " + key;
+            var order = Math.floor(Math.random() * 3);
+            if(order == 0){
+                //console.log("random count0: " + order);
+                 //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                client.channels.cache.get(channel).send("Home: <@" + team1 + ">" + " " +  "Away: <@" + team2 + "> <@" + team3 + "> set up a match for " + gameName + ".");
+            }
+            else if (order == 1){
+                //console.log("random count1: " + order);
+                 //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                client.channels.cache.get(channel).send("Home: <@" + team2 + ">" + " " +  "Away: <@" + team1 + "> <@" + team3 + "> set up a match for " + gameName + ".");
+            }
+            else{
+                //console.log("random count1: " + order);
+                 //console.log("channel: " + channel + " gamePos: " + gamePos + " key: " + key + " team2: " + team2);
+                client.channels.cache.get(channel).send("Home: <@" + team3 + ">" + " " +  "Away: <@" + team1 + "> <@" + team2 + "> set up a match for " + gameName + ".");
+            }
+           
+            if(log[gameLogPos][completeDate] == null) {
+                log[gameLogPos][completeDate] = JSON.parse("{}");
+            }
+            if(log[gameLogPos][completeDate][key] == null) {
+                log[gameLogPos][completeDate][key] = JSON.parse("{}");
+            }
+
+            if(coachList[channel]== null){
+                coachList[channel] = [];
+            }
+            coachList[channel].push(team1);
+            coachList[channel].push(team2);
+            coachList[channel].push(team3);
+            console.log("gameLogPos: " + gameLogPos + " complete: " + completeDate + " key: " + key);
+            var matchSets = log[gameLogPos][completeDate][key];
+            console.log("List of coaches: " + coachList[channel])
+            log[gameLogPos][completeDate][key]["match" + Object.keys(matchSets).length] = team1Name + ", " + team2Name + ", " + team3Name;
         }
     }
 
@@ -561,7 +682,7 @@ function closeQueue() {
     currentDay =  (day.getUTCHours() < 4) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
-    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - daylightSavings + 24 : day.getUTCHours() - daylightSavings;
 
     console.log("scheduling? " + scheduling);
     for(var i = 0; i < games.length; i++)
@@ -714,14 +835,14 @@ function clearQueues() {
 
 function testCron(setHr, setMin, wday) {
     day = new Date();
-    daylightSavings = true;
+    //daylightSavings = true;
     currentWeekDay = (day.getUTCHours() < 4) ? day.getUTCDay() - 1: day.getUTCDay();
     currentMonth = day.getUTCMonth()+1;
     currentDay =  (day.getUTCHours() < 4) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
     if(currentMinutes + 5 )
-    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - daylightSavings + 24 : day.getUTCHours() - daylightSavings;
     var queuetime = '00 ' + currentMinutes + ' ' + currentHour + ' * * ' + wday;
     var crontest = [];
     crontest.push(
@@ -1646,7 +1767,7 @@ function dayLight()
     let today_date = new Date(today_date_string).getTimezoneOffset();
     console.log("jan time is: " + jan_date);
     console.log("current time is: " + today_date);
-    daylightSavings = true;
+    //daylightSavings = true;
     //currentHour += 1;
     console.log("it's daylight savings");
 }
@@ -1654,13 +1775,13 @@ function dayLight()
 function scheduleStartTime() {
     //scroll through game json and find all games with current day of the week or current date    
     day = new Date();
-    daylightSavings = false;
+    //daylightSavings = false;
     currentWeekDay = (day.getUTCHours() < 4) ? day.getUTCDay() - 1: day.getUTCDay();
     currentMonth = day.getUTCMonth()+1;
     currentDay =  (day.getUTCHours() < 4) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
-    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - daylightSavings + 24 : day.getUTCHours() - daylightSavings;
     console.log("number of jobs: " + cronJobs.length);
     
     
@@ -1691,7 +1812,7 @@ function scheduleStartTime() {
                 startHr = "0" + sTime.toString();
             }
             else{
-                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) + 4)
+                sTime = (parseInt(games[i][matchTimeKey].substr(0,2)) + daylightSavings)
                 if(sTime < 10){
                     startHr = "0" + sTime.toString();
                 }
@@ -1705,7 +1826,7 @@ function scheduleStartTime() {
                 endHr = "0" + eTime.toString();
             }
             else{
-                eTime = (parseInt(games[i][stopTimeKey].substr(0,2)) + 4)
+                eTime = (parseInt(games[i][stopTimeKey].substr(0,2)) + daylightSavings)
                 if(eTime < 10){
                     endHr = "0" + eTime.toString();
                 }
@@ -1726,7 +1847,7 @@ function scheduleStartTime() {
                 openHr = "0" + qTime.toString();
             }
             else{
-                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) + 4)
+                qTime = (parseInt(games[i][openQueueKey].substr(0,2)) + daylightSavings)
                 if(qTime < 10){
                     openHr = "0" + qTime.toString();
                 }
@@ -1913,7 +2034,7 @@ client.on('message', message => {
     currentDay =  (day.getUTCHours() < 4) ? day.getUTCDate() - 1: day.getUTCDate();
     currentYear = day.getUTCFullYear();
     currentMinutes = day.getUTCMinutes();
-    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - 4 + 24 : day.getUTCHours() - 4;
+    currentHour = (day.getUTCHours() >= 0 && day.getUTCHours() <= 3) ? day.getUTCHours() - daylightSavings + 24 : day.getUTCHours() - daylightSavings;
 
     var utcTime = "month: " + day.getUTCMonth() + " day: " + day.getUTCDate() + " year: " + day.getUTCFullYear() 
                     + " hour: " + day.getUTCHours() + " mintues: " + day.getUTCMinutes();
