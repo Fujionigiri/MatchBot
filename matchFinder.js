@@ -33,7 +33,7 @@ var currentMonth;
 var currentYear;
 var currentHour;
 var currentMinutes;
-var daylightSavings = 5;
+var daylightSavings = 4;
 var coachRoleId;
 var scheduling = false;
 var queueing = false;
