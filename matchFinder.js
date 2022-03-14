@@ -1095,6 +1095,8 @@ function postRules(message){
         message.channel.send("https://docs.google.com/document/u/0/d/1pHEy8DcXv-Cq79UDytUzgPLos_lo3dIRO1k_g81vtnE");
     else if(message.channel.id === "942444698402975834") //valorant
         message.channel.send("https://docs.google.com/document/d/1Y8_x6x-rCjn2AljnlYR4hxlQjKRQTFN_l8NTLHs0ToE");
+    else if(message.channel.id === "809564027600371762") //valorant
+        message.channel.send("https://docs.google.com/document/d/1Y8_x6x-rCjn2AljnlYR4hxlQjKRQTFN_l8NTLHs0ToE");
     else //friendlies
         message.channel.send("https://docs.google.com/document/d/1uwrmDi2go7U9fq7PO3RjmQ-uq-jnW58GSPjBtJtUrJ0");
 }
