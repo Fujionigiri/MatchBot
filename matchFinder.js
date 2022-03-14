@@ -1077,6 +1077,15 @@ function removeTeam(message, id, coachId){
     message.channel.send("```diff\n- There is no team in the selected queue with that id.```");
 }
 
+function checkChampChannel(message){
+    if(message.channel.id === "889104366466904104" || message.channel.id === "907711996617719849" || message.channel.id === "907716653717024768"
+     || message.channel.id === "907712037763825735" || message.channel.id === "889104498830749726" || message.channel.id === "897495968805691423"
+     || message.channel.id === "941724567553077279" || message.channel.id === "942444698402975834"){
+         return true;
+     }
+     return false;
+}
+
 function postRules(message){
     //rocket league
     if(message.channel.id === "889104366466904104")
@@ -2363,7 +2372,6 @@ client.on('message', message => {
             }
         }
         else if(call === "rules" && args.length < 1) {
-            message.channel.send("```diff\n- Rules ```");
             postRules(message);
         }
         else if(args.length == 1 && config.MAIN_CHANNEL == message.channel.id && hasPermission(message, "admin")){
@@ -2372,6 +2380,11 @@ client.on('message', message => {
         else { //Entered command was invalid
             message.channel.send("```diff\n- Invalid Input 1 ```");
             return;
+        }
+    }
+    else if (checkChampChannel(message)){
+        if(call === "rules" && args.length < 1) {
+            postRules(message);
         }
     }
     else { //Entered command was invalid
