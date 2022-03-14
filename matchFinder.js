@@ -1078,7 +1078,25 @@ function removeTeam(message, id, coachId){
 }
 
 function postRules(message){
-    message.channel.send("https://docs.google.com/document/d/1uwrmDi2go7U9fq7PO3RjmQ-uq-jnW58GSPjBtJtUrJ0");
+    //rocket league
+    if(message.channel.id === "889104366466904104")
+        message.channel.send("https://docs.google.com/document/d/1F52l83jT9LNiciZeMwHPv4nOyLN2alUUjKZjqEMAGZU");
+    else if(message.channel.id === "907711996617719849") //chess
+        message.channel.send("https://docs.google.com/document/d/1NslRoXKselBS0jv1SBj7uxyVDdBsi_WewtePSQQmCaE");
+    else if(message.channel.id === "907716653717024768") //Overwatch
+        message.channel.send("https://docs.google.com/document/d/1E9VeaFeIhAI4ATR6ELDQM2ChBx3DzTh0UpawQQthlAU");
+    else if(message.channel.id === "907712037763825735") //knockout city
+        message.channel.send("https://docs.google.com/document/d/1W5twifYzR93sEpoiVE3tNlOenfWjdUeG7hj-USb7so4");
+    else if(message.channel.id === "889104498830749726") //fortnite
+        message.channel.send("https://docs.google.com/document/d/1iGuGPn26ypoaZ5xKm19bFYn4bbeKIQirWRwkVxBbeBA");
+    else if(message.channel.id === "897495968805691423") //ssbu
+        message.channel.send("https://docs.google.com/document/d/1aoQ5QSyQfxZwcEsUR6eFIZOKdxi5sMX--Pi9QI0Pk94");
+    else if(message.channel.id === "941724567553077279") //league
+        message.channel.send("https://docs.google.com/document/u/0/d/1pHEy8DcXv-Cq79UDytUzgPLos_lo3dIRO1k_g81vtnE");
+    else if(message.channel.id === "942444698402975834") //valorant
+        message.channel.send("https://docs.google.com/document/d/1Y8_x6x-rCjn2AljnlYR4hxlQjKRQTFN_l8NTLHs0ToE");
+    else //friendlies
+        message.channel.send("https://docs.google.com/document/d/1uwrmDi2go7U9fq7PO3RjmQ-uq-jnW58GSPjBtJtUrJ0");
 }
 
 function updateGameQueueDay(message, id){
@@ -1147,6 +1165,7 @@ function updateGameQueueDay(message, id){
     });
 
 }
+
 
 //Adds new game to list if it doesn't already exist by id, adds info to games.json and creates a matching json to store queued teams
 function addGame(message, id, name) {
