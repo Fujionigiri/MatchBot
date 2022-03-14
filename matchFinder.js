@@ -2363,18 +2363,19 @@ client.on('message', message => {
             }
         }
         else if(call === "rules" && args.length < 1) {
+            message.channel.send("```diff\n- Rules ```");
             postRules(message);
         }
         else if(args.length == 1 && config.MAIN_CHANNEL == message.channel.id && hasPermission(message, "admin")){
             addToQueue(message, games[game][id], game, args.shift().toLowerCase());
         }
         else { //Entered command was invalid
-            message.channel.send("```diff\n- Invalid Input ```");
+            message.channel.send("```diff\n- Invalid Input 1 ```");
             return;
         }
     }
     else { //Entered command was invalid
-        message.channel.send("```diff\n- Invalid Input ```");
+        message.channel.send("```diff\n- Invalid Input 2 ```");
         return;
     }
 });
