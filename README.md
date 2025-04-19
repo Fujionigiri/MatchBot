@@ -48,7 +48,7 @@ What started as a Discord bot grew into a larger statewide platform now used by 
 
 ## About This Repo
 This repository contains selected portions of the original MatchBot codebase and is intended to highlight experience with:
-- Building and deploying Discord bots -
-- Managing real-time user interactions -
-- Automating logistics for education-based programs -
-- Working with Node.js and GitHub CI/CD -
+- Building and deploying Discord bots
+- Managing real-time user interactions
+- Automating logistics for education-based programs
+- Working with Node.js and GitHub CI/CD
